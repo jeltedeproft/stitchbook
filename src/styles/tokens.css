@@ -1,0 +1,70 @@
+/* Design tokens. Text/background pairs are chosen for WCAG AA (≥ 4.5:1 body text, ≥ 3:1 UI). */
+:root {
+  color-scheme: light;
+  --c-bg: #fbf6ef;
+  --c-surface: #ffffff;
+  --c-surface-2: #f4ece1;
+  --c-surface-3: #ebe0d2;
+  --c-ink: #2a2320;
+  --c-muted: #6b5d55;
+  --c-line: #e6dacb;
+  --c-field-line: #8c7b6f;
+  --c-primary: #a8461f;
+  --c-primary-hover: #8f3a18;
+  --c-on-primary: #ffffff;
+  --c-primary-soft: #f7e2d6;
+  --c-on-primary-soft: #7a3214;
+  --c-accent-2: #5e7458;
+  --c-accent-3: #c28a2c;
+  --c-focus: #1f5f8b;
+  --c-danger: #a3262a;
+  --c-danger-soft: #f8dfdf;
+
+  --s-planned-bg: #e3e9ef; --s-planned-fg: #36495a;
+  --s-progress-bg: #f7e2d6; --s-progress-fg: #7a3214;
+  --s-paused-bg: #f6ead0; --s-paused-fg: #6e4f0f;
+  --s-done-bg: #e1ebdc; --s-done-fg: #36522f;
+
+  --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --shadow-1: 0 1px 2px rgba(60, 35, 20, 0.06), 0 2px 8px rgba(60, 35, 20, 0.05);
+  --shadow-2: 0 4px 14px rgba(60, 35, 20, 0.1), 0 12px 32px rgba(60, 35, 20, 0.08);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --page-max: 1120px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --c-bg: #1c1816;
+    --c-surface: #26201d;
+    --c-surface-2: #312925;
+    --c-surface-3: #3c332e;
+    --c-ink: #f4ebe2;
+    --c-muted: #c2b2a6;
+    --c-line: #40362f;
+    --c-field-line: #9b8a7e;
+    --c-primary: #e8946b;
+    --c-primary-hover: #f0a882;
+    --c-on-primary: #241410;
+    --c-primary-soft: #4a2c1f;
+    --c-on-primary-soft: #f6c8b1;
+    --c-accent-2: #9db592;
+    --c-accent-3: #e0b25e;
+    --c-focus: #7cc0ef;
+    --c-danger: #f08a8a;
+    --c-danger-soft: #4a2224;
+
+    --s-planned-bg: #2c3742; --s-planned-fg: #c6d6e6;
+    --s-progress-bg: #4a2c1f; --s-progress-fg: #f6c8b1;
+    --s-paused-bg: #463a1e; --s-paused-fg: #f0d590;
+    --s-done-bg: #2d3d29; --s-done-fg: #bfd9b4;
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-2: 0 8px 28px rgba(0, 0, 0, 0.45);
+  }
+}
