@@ -22,12 +22,6 @@ export function upcomingNotes(c: ProjectComponent, limit = 2): RowNote[] {
   return (c.rowNotes ?? []).filter((n) => n.row > from).slice(0, limit);
 }
 
-/** How many rows a full row list shows: up to the target, the last note, and the working row. */
-export function rowSpan(c: ProjectComponent): number {
-  const lastNote = c.rowNotes?.at(-1)?.row ?? 0;
-  return Math.max(c.targetRows ?? 0, lastNote, workingRow(c));
-}
-
 /**
  * Sets the note for one row. Text is trimmed and capped; empty text removes the note.
  * Notes stay sorted by row with at most one per row.

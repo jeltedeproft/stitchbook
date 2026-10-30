@@ -1,92 +1,81 @@
-/* Design tokens. Text/background pairs are chosen for WCAG AA (≥ 4.5:1 body text, ≥ 3:1 UI). */
+/*
+ * Design tokens. One accent (rust) for actions and "now"; moss only for "done".
+ * Warm neutrals carry everything else. Text/background pairs meet WCAG AA
+ * (≥ 4.5:1 body text, ≥ 3:1 UI). Spacing follows a 4/8 px scale.
+ */
 :root {
   color-scheme: light;
-  --c-bg: #f3e8d8;
-  --c-surface: #fffaf2;
-  --c-surface-2: #f7eddf;
-  --c-surface-3: #ecdcc6;
-  --c-ink: #2e2420;
-  --c-muted: #6a5849;
-  --c-line: #e4d2bb;
-  --c-stitch: #d2ae8a;
-  --c-field-line: #8c7865;
+  --c-bg: #f7f3ee;
+  --c-surface: #ffffff;
+  --c-surface-2: #f4efe9;
+  --c-surface-3: #e9e2d9;
+  --c-ink: #26211e;
+  --c-muted: #6e645c;
+  --c-line: #e9e2d9;
+  --c-field-line: #8f8278;
   --c-primary: #a8461f;
   --c-primary-hover: #8f3a18;
-  --c-primary-deep: #7c3114;
   --c-on-primary: #ffffff;
-  --c-primary-soft: #f6dfcf;
+  --c-primary-soft: #f8e6dc;
   --c-on-primary-soft: #7a3214;
   --c-accent-2: #5e7458;
   --c-accent-3: #c28a2c;
-  --c-tag: #f8e9c6;
-  --c-on-tag: #4a3516;
   --c-focus: #1f5f8b;
   --c-danger: #a3262a;
   --c-danger-soft: #f8dfdf;
 
-  --s-planned-bg: #e3e9ef; --s-planned-fg: #36495a;
-  --s-progress-bg: #f6dfcf; --s-progress-fg: #7a3214;
-  --s-paused-bg: #f6ead0; --s-paused-fg: #6e4f0f;
-  --s-done-bg: #e1ebdc; --s-done-fg: #36522f;
+  --s-planned-bg: #e8edf2; --s-planned-fg: #36495a;
+  --s-progress-bg: #f8e6dc; --s-progress-fg: #7a3214;
+  --s-paused-bg: #f6ecd6; --s-paused-fg: #6e4f0f;
+  --s-done-bg: #e4ede0; --s-done-fg: #36522f;
 
   --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --font-body: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-hand: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
 
-  /* Stockinette: columns of little V stitches. */
-  --knit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='12' viewBox='0 0 14 12'%3E%3Cpath d='M1.8 1.2Q3.2 7 7 10.8M12.2 1.2Q10.8 7 7 10.8' fill='none' stroke='%238a5a35' stroke-opacity='.075' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
-  /* Fair Isle band of diamonds and dots, for the header edge. */
-  --fairisle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10' viewBox='0 0 20 10'%3E%3Crect width='20' height='10' fill='%23a8461f'/%3E%3Cpath d='M10 1.5L13.5 5 10 8.5 6.5 5z' fill='%23f3e8d8'/%3E%3Ccircle cx='10' cy='5' r='1.2' fill='%23c28a2c'/%3E%3Ccircle cx='0' cy='5' r='1.4' fill='%23f3e8d8'/%3E%3Ccircle cx='20' cy='5' r='1.4' fill='%23f3e8d8'/%3E%3C/svg%3E");
-  /* A loose strand of yarn, for dividers. */
-  --strand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='12' viewBox='0 0 48 12'%3E%3Cpath d='M0 6c6-6 12-6 18 0s12 6 18 0 9-4.5 12-3' fill='none' stroke='%23a8461f' stroke-opacity='.55' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
 
-  --r-sm: 12px;
-  --r-md: 18px;
-  --r-lg: 26px;
-  --shadow-1: 0 1px 0 rgba(120, 80, 40, 0.06), 0 4px 12px -4px rgba(110, 64, 28, 0.16);
-  --shadow-2: 0 2px 0 rgba(120, 80, 40, 0.06), 0 14px 30px -10px rgba(110, 64, 28, 0.3);
-  --shadow-felt: inset 0 -3px 0 rgba(60, 20, 5, 0.22), 0 3px 8px -3px rgba(110, 50, 20, 0.45);
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --shadow-1: 0 1px 2px rgba(38, 33, 30, 0.05);
+  --shadow-2: 0 2px 4px rgba(38, 33, 30, 0.04), 0 12px 32px rgba(38, 33, 30, 0.1);
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --page-max: 1120px;
+  --page-max: 1080px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --c-bg: #1e1814;
-    --c-surface: #2a221d;
-    --c-surface-2: #342a23;
-    --c-surface-3: #40342b;
-    --c-ink: #f4ebe2;
-    --c-muted: #c6b4a5;
-    --c-line: #433629;
-    --c-stitch: #6a5240;
-    --c-field-line: #9b8a7e;
+    --c-bg: #181513;
+    --c-surface: #221e1b;
+    --c-surface-2: #2b2623;
+    --c-surface-3: #37302c;
+    --c-ink: #f3ece5;
+    --c-muted: #b9aca1;
+    --c-line: #342d29;
+    --c-field-line: #8f8278;
     --c-primary: #e8946b;
     --c-primary-hover: #f0a882;
-    --c-primary-deep: #c4754f;
     --c-on-primary: #241410;
-    --c-primary-soft: #4a2c1f;
+    --c-primary-soft: #43291d;
     --c-on-primary-soft: #f6c8b1;
     --c-accent-2: #9db592;
     --c-accent-3: #e0b25e;
-    --c-tag: #3f3322;
-    --c-on-tag: #f3dfb8;
     --c-focus: #7cc0ef;
     --c-danger: #f08a8a;
     --c-danger-soft: #4a2224;
 
-    --s-planned-bg: #2c3742; --s-planned-fg: #c6d6e6;
-    --s-progress-bg: #4a2c1f; --s-progress-fg: #f6c8b1;
-    --s-paused-bg: #463a1e; --s-paused-fg: #f0d590;
-    --s-done-bg: #2d3d29; --s-done-fg: #bfd9b4;
+    --s-planned-bg: #29333d; --s-planned-fg: #c6d6e6;
+    --s-progress-bg: #43291d; --s-progress-fg: #f6c8b1;
+    --s-paused-bg: #41361c; --s-paused-fg: #f0d590;
+    --s-done-bg: #2a3827; --s-done-fg: #bfd9b4;
 
-    --knit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='12' viewBox='0 0 14 12'%3E%3Cpath d='M1.8 1.2Q3.2 7 7 10.8M12.2 1.2Q10.8 7 7 10.8' fill='none' stroke='%23f4d9c0' stroke-opacity='.04' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
-    --fairisle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10' viewBox='0 0 20 10'%3E%3Crect width='20' height='10' fill='%237c3114'/%3E%3Cpath d='M10 1.5L13.5 5 10 8.5 6.5 5z' fill='%23e8c9a8'/%3E%3Ccircle cx='10' cy='5' r='1.2' fill='%23c28a2c'/%3E%3Ccircle cx='0' cy='5' r='1.4' fill='%23e8c9a8'/%3E%3Ccircle cx='20' cy='5' r='1.4' fill='%23e8c9a8'/%3E%3C/svg%3E");
-    --strand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='12' viewBox='0 0 48 12'%3E%3Cpath d='M0 6c6-6 12-6 18 0s12 6 18 0 9-4.5 12-3' fill='none' stroke='%23e8946b' stroke-opacity='.5' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px -4px rgba(0, 0, 0, 0.4);
-    --shadow-2: 0 8px 28px rgba(0, 0, 0, 0.45);
-    --shadow-felt: inset 0 -3px 0 rgba(0, 0, 0, 0.25), 0 3px 8px -3px rgba(0, 0, 0, 0.6);
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.5);
   }
 }

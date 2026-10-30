@@ -40,7 +40,7 @@ export function OverviewScreen() {
     <div className="page">
       <section className="hero">
         <div>
-          <p className="eyebrow eyebrow--hand">{t(greetingKey())}</p>
+          <p className="eyebrow">{t(greetingKey())}</p>
           <h1>{t('overview.title')}</h1>
           <p className="muted">
             {activeCount === 0

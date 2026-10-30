@@ -12,7 +12,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--knit) var(--c-bg);
+  background: var(--c-bg);
   color: var(--c-ink);
   font-family: var(--font-body);
   font-size: 1rem;

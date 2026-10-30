@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { setCount } from '../../src/domain/counters';
 import { updateComponent } from '../../src/domain/components';
-import { isFinished, rowNote, rowSpan, setRowNote, upcomingNotes, workingRow } from '../../src/domain/rowNotes';
+import { isFinished, rowNote, setRowNote, upcomingNotes, workingRow } from '../../src/domain/rowNotes';
 import { filterProjects, DEFAULT_FILTER } from '../../src/domain/search';
 import { normalizeProject } from '../../src/domain/validation';
 import { makeProject } from '../helpers';
@@ -40,7 +40,7 @@ describe('row notes', () => {
     expect(rowNote(setRowNote(p, id, 1, 'x'.repeat(600)).components[0], 1)).toHaveLength(500);
   });
 
-  it('knows the working row, what comes next, and how far the list goes', () => {
+  it('knows the working row and what comes next', () => {
     const { p, id } = setup();
     let next = setCount(p, id, 'rows', 34);
     next = setRowNote(next, id, 35, 'Stripe');
@@ -51,8 +51,7 @@ describe('row notes', () => {
     expect(workingRow(c)).toBe(35);
     expect(rowNote(c, 35)).toBe('Stripe');
     expect(upcomingNotes(c).map((n) => n.row)).toEqual([40, 84]);
-    expect(rowSpan(c)).toBe(84);
-    expect(rowSpan(updateComponent(next, id, { targetRows: 96 }).components[0])).toBe(96);
+    expect(upcomingNotes(c, Infinity).map((n) => n.row)).toEqual([40, 84]);
     expect(isFinished(updateComponent(next, id, { targetRows: 34 }).components[0])).toBe(true);
   });
 

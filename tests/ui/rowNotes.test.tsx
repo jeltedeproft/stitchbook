@@ -9,50 +9,76 @@ beforeEach(() => {
   window.location.hash = '';
 });
 
-describe('row notes on a part', () => {
-  it('adds a note to the working row, follows the counter, and removes with undo', async () => {
+const rowNames = (log: HTMLElement) =>
+  within(log)
+    .getAllByRole('listitem')
+    .map((li) => li.querySelector('.logrow__name')?.firstChild?.textContent);
+
+describe('row log on a part', () => {
+  it('keeps earlier rows visible as new ones are added, each with its own note', async () => {
     const user = userEvent.setup();
     let project = makeProject('Sweater', ['Sleeve']);
     const id = project.components[0].id;
     project = setCount(project, id, 'rows', 2);
-    project = setRowNote(project, id, 4, 'Decrease both ends');
+    project = setRowNote(project, id, 1, 'Cast on 60');
     const repo = await seededRepo([project]);
     renderApp(repo);
     goTo(`#/project/${project.id}`);
 
     const card = within((await screen.findByRole('heading', { name: 'Sleeve' })).closest('article')!);
-    expect(card.getByText('Row 3')).toBeInTheDocument();
-    expect(card.getByText('Coming up')).toBeInTheDocument();
+    const log = card.getByRole('region', { name: 'Row by row' });
+    expect(rowNames(log)).toEqual(['Row 3', 'Row 2', 'Row 1']);
+    expect(within(log).getByText('On the needles')).toBeInTheDocument();
+    expect(within(log).getByText('Cast on 60')).toBeInTheDocument();
 
-    await user.click(card.getByRole('button', { name: '+ Note for this row' }));
-    const dialog = within(await screen.findByRole('dialog'));
-    await user.type(dialog.getByLabelText('Note for row 3'), 'Start the stripe{Enter}');
-    expect(dialog.getByText('Start the stripe')).toBeInTheDocument();
-    await user.click(dialog.getByRole('button', { name: 'Close' }));
+    await user.click(within(log).getByRole('button', { name: /^Row 3/ }));
+    await user.type(within(log).getByLabelText('Note for row 3'), 'Start the stripe{Enter}');
 
-    expect(card.getByText('Start the stripe')).toBeInTheDocument();
     await user.click(card.getByRole('button', { name: 'Increase rows' }));
-    expect(card.getByText('Row 4')).toBeInTheDocument();
-    expect(card.getByText('Decrease both ends')).toBeInTheDocument();
+    expect(rowNames(log)).toEqual(['Row 4', 'Row 3', 'Row 2', 'Row 1']);
+    expect(within(log).getByText('Start the stripe')).toBeInTheDocument();
+    expect(within(log).getByText('Cast on 60')).toBeInTheDocument();
 
-    await user.click(card.getByRole('button', { name: 'Edit note' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove note' }));
-    expect(screen.getByText('Note for row 4 removed.')).toBeInTheDocument();
+    await user.click(within(log).getByRole('button', { name: /^Row 1/ }));
+    await user.click(within(log).getByRole('button', { name: 'Remove note' }));
+    expect(screen.getByText('Note for row 1 removed.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Undo' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Close' }));
-    expect(card.getByText('Decrease both ends')).toBeInTheDocument();
+    expect(within(log).getByText('Cast on 60')).toBeInTheDocument();
 
     await waitFor(async () => {
       const [saved] = await repo.loadAll();
+      expect(saved.components[0].rows).toBe(3);
       expect(saved.components[0].rowNotes).toEqual([
+        { row: 1, text: 'Cast on 60' },
         { row: 3, text: 'Start the stripe' },
-        { row: 4, text: 'Decrease both ends' },
       ]);
     });
   });
 
-  it('lists every row with its state in French', async () => {
+  it('plans a note for a later row and shows it above the current one', async () => {
     const user = userEvent.setup();
+    const project = makeProject('Sweater', ['Sleeve']);
+    const repo = await seededRepo([project]);
+    renderApp(repo);
+    goTo(`#/project/${project.id}`);
+
+    const log = await screen.findByRole('region', { name: 'Row by row' });
+    await user.click(within(log).getByRole('button', { name: '+ Note for a later row' }));
+    const which = within(log).getByLabelText('Which row?');
+    await user.clear(which);
+    await user.type(which, '0');
+    await user.type(within(log).getByLabelText('Note'), 'Decrease');
+    await user.click(within(log).getByRole('button', { name: 'Save' }));
+    expect(within(log).getByText('Enter a row number from 1 to 99,999.')).toBeInTheDocument();
+
+    await user.clear(which);
+    await user.type(which, '12');
+    await user.click(within(log).getByRole('button', { name: 'Save' }));
+    expect(rowNames(log)).toEqual(['Row 12', 'Row 1']);
+    expect(within(within(log).getByRole('list', { name: 'Planned' })).getByText('Decrease')).toBeInTheDocument();
+  });
+
+  it('works in French', async () => {
     let project = makeProject('Pull', ['Manche']);
     const id = project.components[0].id;
     project = setCount(project, id, 'rows', 1);
@@ -61,12 +87,10 @@ describe('row notes on a part', () => {
     renderApp(repo, 'fr');
     goTo(`#/project/${project.id}`);
 
-    await user.click(await screen.findByRole('button', { name: /^Tous les rangs/ }));
-    const dialog = within(screen.getByRole('dialog'));
-    const items = dialog.getAllByRole('listitem');
-    expect(items.length).toBeGreaterThanOrEqual(2);
-    expect(within(items[0]).getByText('fait')).toBeInTheDocument();
-    expect(within(items[0]).getByText('Montage')).toBeInTheDocument();
-    expect(within(items[1]).getByText('en cours')).toBeInTheDocument();
+    const log = await screen.findByRole('region', { name: 'Rang par rang' });
+    const items = within(log).getAllByRole('listitem');
+    expect(within(items[0]).getByText('Sur les aiguilles')).toBeInTheDocument();
+    expect(within(items[1]).getByText('fait')).toBeInTheDocument();
+    expect(within(items[1]).getByText('Montage')).toBeInTheDocument();
   });
 });
