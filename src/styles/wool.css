@@ -1,0 +1,124 @@
+/*
+ * Wool finish: the knitted, homely look, kept to a few repeated motifs so the layout underneath
+ * stays calm.
+ *   - stockinette texture on the page and in counters
+ *   - a Fair Isle band under the header, a strand of yarn under the page title
+ *   - cards are felt patches sewn on with a running stitch (big surfaces only, never buttons)
+ *   - counter buttons are felt coat buttons, progress bars are plied yarn
+ *   - notes are handwritten on paper tags
+ */
+
+body { background: var(--knit) var(--c-bg); }
+
+/* ---------- Header ---------- */
+.topbar { border-bottom: none; box-shadow: 0 6px 14px -12px rgba(110, 64, 28, 0.4); }
+.topbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 8px;
+  background: var(--fairisle) repeat-x;
+  background-size: 16px 8px;
+  pointer-events: none;
+}
+.page { padding-top: calc(var(--sp-5) + 8px); }
+
+.eyebrow--hand {
+  font-family: var(--font-hand);
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--c-primary);
+}
+.hero { padding-bottom: 22px; background: var(--strand) repeat-x left bottom / 48px 12px; }
+
+/* ---------- Felt patches with a running stitch ---------- */
+.pcard__link,
+.resume,
+.phero,
+.part,
+.card {
+  outline: 1.5px dashed var(--c-stitch);
+  outline-offset: -7px;
+}
+.part--recent { outline-color: color-mix(in srgb, var(--c-primary) 50%, var(--c-stitch)); }
+/* The stitching uses outline, so focus rings on linked cards must win explicitly. */
+.pcard__link:focus-visible,
+.resume:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; }
+
+.resume__visual { border-radius: 50%; box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.18); }
+.visual--swatch {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='12' viewBox='0 0 14 12'%3E%3Cpath d='M1.8 1.2Q3.2 7 7 10.8' fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M12.2 1.2Q10.8 7 7 10.8' fill='none' stroke='%23000' stroke-opacity='.12' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"),
+    radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, 0.16), transparent 60%);
+  background-size: 14px 12px, 100% 100%;
+}
+.swatch,
+.material .swatch { box-shadow: inset 0 -3px 4px rgba(0, 0, 0, 0.2); }
+
+.empty,
+.add-part { border-color: var(--c-stitch); border-width: 2px; }
+
+/* ---------- Felt buttons ---------- */
+.btn--primary,
+.resume__go { box-shadow: var(--shadow-felt); }
+.btn--primary:active:not(:disabled) { box-shadow: inset 0 2px 3px rgba(60, 20, 5, 0.3); }
+
+/* ---------- Counters: a knitted swatch with coat buttons ---------- */
+.counter { background: var(--knit) var(--c-surface-2); box-shadow: inset 0 1px 3px rgba(110, 64, 28, 0.1); }
+.counter__btn {
+  background: radial-gradient(circle at 50% 35%, var(--c-surface), var(--c-surface-2));
+  box-shadow: inset 0 -3px 0 rgba(110, 64, 28, 0.12), 0 2px 5px -2px rgba(110, 64, 28, 0.35);
+}
+.counter__btn--up {
+  background: radial-gradient(circle at 50% 35%, var(--c-primary), var(--c-primary-hover));
+  border-color: var(--c-primary-hover);
+  box-shadow: var(--shadow-felt);
+  outline: 1.5px dashed color-mix(in srgb, var(--c-on-primary) 50%, transparent);
+  outline-offset: -7px;
+}
+.counter__btn--up:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; }
+.counter__num { font-family: var(--font-display); font-weight: 600; letter-spacing: 0; }
+
+/* ---------- Plied-yarn progress ---------- */
+.progress__track { height: 10px; box-shadow: inset 0 1px 2px rgba(60, 35, 20, 0.15); }
+.progress__fill {
+  background-image:
+    repeating-linear-gradient(115deg, transparent 0 5px, rgba(255, 255, 255, 0.3) 5px 7px),
+    linear-gradient(90deg, var(--c-accent-2), var(--c-primary));
+}
+.part__progress div { background-image: repeating-linear-gradient(115deg, transparent 0 4px, rgba(255, 255, 255, 0.3) 4px 6px); }
+.part__progress { height: 6px; }
+
+/* ---------- Handwritten notes on paper tags ---------- */
+.notes { background: var(--c-tag); color: var(--c-on-tag); border: none; box-shadow: var(--shadow-1); }
+.part__notes { border-left-color: var(--c-stitch); }
+.notice { background: var(--c-tag); color: var(--c-on-tag); }
+
+.logrow__note {
+  font-family: var(--font-hand);
+  font-size: 1.25rem;
+  line-height: 1.15;
+  color: var(--c-on-tag);
+}
+.logrow.has-note:not(.logrow--planned) .logrow__note {
+  margin-top: 2px;
+  padding: 4px 12px 4px 26px;
+  border-radius: 4px 12px 12px 4px;
+  /* the tag's tie hole */
+  background: radial-gradient(circle at 12px 50%, var(--c-surface) 0 3.5px, var(--c-stitch) 4px 5px, transparent 5.5px), var(--c-tag);
+  box-shadow: 0 2px 5px -3px rgba(110, 64, 28, 0.45);
+}
+.rowlog__list--planned .logrow__note { color: var(--c-muted); }
+.logrow__form textarea { font-family: var(--font-hand); font-size: 1.25rem; line-height: 1.2; background: var(--c-tag); color: var(--c-on-tag); }
+
+/* worked rows sit on a knitted ground, separated like rows of stitches */
+.rowlog__list:not(.rowlog__list--planned) { background: var(--knit) var(--c-surface); }
+.logrow + .logrow { border-top-style: dashed; }
+
+/* ---------- Sheets ---------- */
+.sheet { background: var(--knit) var(--c-bg); }

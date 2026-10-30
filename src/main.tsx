@@ -7,6 +7,7 @@ import { ToastProvider } from './state/toast';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
+import './styles/wool.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

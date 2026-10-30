@@ -7,3 +7,4 @@
 - [x] T005 Restyle cards, counters and part layout; row log styles (`src/styles/components.css`)
 - [x] T006 Tests: `tests/ui/rowNotes.test.tsx` covers rows staying visible after +, notes, undo, planning, French
 - [x] T007 Phone/desktop and light/dark screenshots; no horizontal overflow
+- [x] T008 Wool finish layered back on in `src/styles/wool.css` (follow-up)

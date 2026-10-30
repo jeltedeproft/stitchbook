@@ -35,3 +35,11 @@ Design principles applied:
   decorative outlines; dashed borders only where something can still be added.
 - **Consistent controls**: round counter buttons, pill buttons and chips, one radius scale.
 - Light and dark mode keep WCAG AA contrast; no horizontal scrolling at 360 px.
+
+### Follow-up - Keep the wool look (2026-10-30)
+
+User: "it seems you lost the wooly knitty grandma GUI style, you can keep that". The clean layout and
+spacing stay; the knitted finish returns as one layer in `src/styles/wool.css` with a fixed set of
+motifs: stockinette texture, Fair Isle header band, yarn-strand divider, running-stitch felt cards
+(large surfaces only), felt coat-button counters, plied-yarn progress, handwritten paper-tag notes.
+No stitching on buttons, chips or toasts.
