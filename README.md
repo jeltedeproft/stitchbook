@@ -60,6 +60,16 @@ automatically.
 | mailles | **Stitches** | **Mailles** |
 | needle / hook | **Needle size**, **Hook size**, **Needle / tool** | **Taille d'aiguille**, **Taille de crochet**, **Aiguille / outil** |
 
+## Put it on a phone
+
+Every push to `main` builds the app and publishes it to GitHub Pages
+(`.github/workflows/pages.yml`): **https://jeltedeproft.github.io/stitchbook/**
+
+Open that link on the phone and add it to the home screen (iPhone: Safari → Share → *Add to Home
+Screen*; Android: Chrome → ⋮ → *Install app*). On iPhone this also stops Safari from clearing the
+app's data after a week without visits. Each phone keeps its own projects; share them with
+*Your data → Export / Import*.
+
 ## Code map
 
 ```text
