@@ -8,6 +8,7 @@ import { useStore } from '../state/store';
 import { useToast } from '../state/toast';
 import { ComponentStatusBadge, Swatch } from './bits';
 import { Counter } from './Counter';
+import { RowPeek } from './RowNotes';
 import { CheckIcon, DownIcon, EditIcon, UpIcon } from './icons';
 
 interface Props {
@@ -153,6 +154,7 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
               <div style={{ width: `${Math.round(progress * 100)}%` }} />
             </div>
           ) : null}
+          <RowPeek project={project} component={c} />
         </>
       ) : (
         <button

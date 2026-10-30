@@ -6,6 +6,7 @@ import type {
   Material,
   Project,
   ProjectComponent,
+  RowNote,
 } from './types';
 
 export const MAX_COUNT = 99_999;
@@ -18,6 +19,7 @@ export const LIMITS = {
   materialNotes: 1000,
   colorNote: 200,
   toolSize: 40,
+  rowNote: 500,
 } as const;
 
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -92,6 +94,19 @@ function normalizeMaterial(raw: unknown): Material | undefined {
   };
 }
 
+function normalizeRowNotes(raw: unknown): RowNote[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const byRow = new Map<number, string>();
+  for (const item of raw) {
+    const n = obj(item);
+    const row = typeof n.row === 'number' ? clampCount(n.row) : 0;
+    const text = str(n.text, LIMITS.rowNote);
+    if (row > 0 && text) byRow.set(row, text);
+  }
+  if (byRow.size === 0) return undefined;
+  return [...byRow].sort((a, b) => a[0] - b[0]).map(([row, text]) => ({ row, text }));
+}
+
 function normalizeComponent(raw: unknown, countersDefault: boolean): ProjectComponent | undefined {
   const c = obj(raw);
   const name = str(c.name, LIMITS.componentName);
@@ -108,6 +123,7 @@ function normalizeComponent(raw: unknown, countersDefault: boolean): ProjectComp
     toolSize: str(c.toolSize, LIMITS.toolSize),
     colors: Array.isArray(c.colors) ? c.colors.map(normalizeColor) : [],
     notes: str(c.notes, LIMITS.componentNotes),
+    rowNotes: normalizeRowNotes(c.rowNotes),
     countersEnabled: typeof c.countersEnabled === 'boolean' ? c.countersEnabled : countersDefault,
   };
 }

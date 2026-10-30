@@ -14,7 +14,7 @@ function haystack(p: Project): string {
     p.name,
     p.notes,
     ...p.materials.flatMap((m) => [m.name, m.brand, m.fiber, m.colorName]),
-    ...p.components.map((c) => c.name),
+    ...p.components.flatMap((c) => [c.name, ...(c.rowNotes ?? []).map((n) => n.text)]),
   ]
     .filter(Boolean)
     .join('\n')

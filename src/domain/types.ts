@@ -23,6 +23,12 @@ export interface ColorAssignment {
   note?: string;
 }
 
+/** A note pinned to one row or round of a part, e.g. "start decreases". Rows are numbered from 1. */
+export interface RowNote {
+  row: number;
+  text: string;
+}
+
 export interface ProjectComponent {
   id: string;
   name: string;
@@ -34,6 +40,8 @@ export interface ProjectComponent {
   toolSize?: string;
   colors: ColorAssignment[];
   notes?: string;
+  /** Sorted by row, at most one note per row. */
+  rowNotes?: RowNote[];
   countersEnabled: boolean;
 }
 

@@ -19,6 +19,8 @@ const TEXT = {
     linen: 'Washed linen', linenFiber: '100% linen', dustyBlue: 'Dusty blue', linenWeight: '2.5 m × 140 cm',
     thread: 'All-purpose thread', slate: 'Slate',
     bodice: 'Bodice', bodiceNotes: 'Stay-stitch the neckline first.', skirt: 'Skirt', pockets: 'Pockets',
+    rn24: 'Tried it on: length is right so far.', rn35: 'Rust stripe, rounds 35–36. Carry the oat up the inside.',
+    rn40: 'Decrease round: k1, k2tog, knit to last 3, ssk, k1.', rn84: 'Switch to 4.0 mm and start the 2×2 cuff.',
   },
   fr: {
     sweater: "Pull d'automne",
@@ -37,6 +39,8 @@ const TEXT = {
     linen: 'Lin lavé', linenFiber: '100 % lin', dustyBlue: 'Bleu poudré', linenWeight: '2,5 m × 140 cm',
     thread: 'Fil tout usage', slate: 'Ardoise',
     bodice: 'Corsage', bodiceNotes: "Faire d'abord une piqûre de soutien sur l'encolure.", skirt: 'Jupe', pockets: 'Poches',
+    rn24: 'Essayé : la longueur est bonne pour l’instant.', rn35: 'Rayure rouille, tours 35–36. Remonter le fil avoine à l’intérieur.',
+    rn40: 'Tour de diminution : 1 m. end., 2 m. ens., tricoter jusqu’aux 3 dernières, 1 surjet, 1 m. end.', rn84: 'Passer aux aiguilles 4 mm et commencer les côtes 2/2 du poignet.',
   },
 } satisfies Record<Lang, Record<string, string>>;
 
@@ -66,7 +70,7 @@ export function sampleProjects(lang: Lang = 'en', nowMs: number = Date.now()): P
       ],
       components: [
         { id: 'sample-hs-body', name: x.body, status: 'complete', countUnit: 'round', rows: 112, targetRows: 112, stitches: 196, toolSize: x.mm50, countersEnabled: true, notes: x.bodyNotes, colors: [{ id: 'sample-hs-c1', materialId: 'sample-hs-oat', note: x.main }] },
-        { id: 'sample-hs-left-sleeve', name: x.leftSleeve, status: 'in_progress', countUnit: 'round', rows: 34, targetRows: 96, stitches: 58, toolSize: x.mm45, countersEnabled: true, notes: x.sleeveNotes, colors: [{ id: 'sample-hs-c2', materialId: 'sample-hs-oat', note: x.main }, { id: 'sample-hs-c3', materialId: 'sample-hs-rust', note: x.stripe }] },
+        { id: 'sample-hs-left-sleeve', name: x.leftSleeve, status: 'in_progress', countUnit: 'round', rows: 34, targetRows: 96, stitches: 58, toolSize: x.mm45, countersEnabled: true, notes: x.sleeveNotes, rowNotes: [{ row: 24, text: x.rn24 }, { row: 35, text: x.rn35 }, { row: 40, text: x.rn40 }, { row: 84, text: x.rn84 }], colors: [{ id: 'sample-hs-c2', materialId: 'sample-hs-oat', note: x.main }, { id: 'sample-hs-c3', materialId: 'sample-hs-rust', note: x.stripe }] },
         { id: 'sample-hs-right-sleeve', name: x.rightSleeve, status: 'in_progress', countUnit: 'round', rows: 30, targetRows: 96, stitches: 58, toolSize: x.mm45, countersEnabled: true, colors: [{ id: 'sample-hs-c4', materialId: 'sample-hs-oat' }, { id: 'sample-hs-c5', materialId: 'sample-hs-rust', note: x.matchStripes }] },
         { id: 'sample-hs-collar', name: x.collar, status: 'not_started', countUnit: 'round', rows: 0, targetRows: 12, stitches: 0, toolSize: x.mm40, countersEnabled: true, notes: x.collarNotes, colors: [{ id: 'sample-hs-c6', materialId: 'sample-hs-rust' }] },
       ],
