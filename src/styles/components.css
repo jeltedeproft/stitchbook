@@ -745,3 +745,19 @@ input[type='color'] { width: 52px; height: 44px; padding: 2px; border-radius: va
   font-weight: 800;
 }
 .toast__close { width: 36px; height: 36px; border: none; border-radius: 50%; background: transparent; color: inherit; font-size: 1.3rem; line-height: 1; }
+
+/* ---------- Language switch ---------- */
+.topbar__actions { display: flex; align-items: center; gap: 4px; }
+.lang-btn {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border: 1.5px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-ink);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+.lang-btn:hover { border-color: var(--c-field-line); }

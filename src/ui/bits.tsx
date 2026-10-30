@@ -1,25 +1,25 @@
 import type { ReactNode } from 'react';
-import {
-  COMPONENT_STATUS_LABEL,
-  CRAFT_LABEL,
-  PROJECT_STATUS_LABEL,
-} from '../domain/craft';
+import { useI18n } from '../i18n/I18nProvider';
+import { componentStatusLabel, craftLabel, statusLabel } from '../i18n/labels';
 import type { ComponentStatus, Material, Project, ProjectStatus } from '../domain/types';
 import { CraftIcon } from './icons';
 
 export function StatusBadge({ status }: { status: ProjectStatus }) {
-  return <span className={`badge badge--${status}`}>{PROJECT_STATUS_LABEL[status]}</span>;
+  const { t } = useI18n();
+  return <span className={`badge badge--${status}`}>{statusLabel(t, status)}</span>;
 }
 
 export function ComponentStatusBadge({ status }: { status: ComponentStatus }) {
-  return <span className={`badge badge--c-${status}`}>{COMPONENT_STATUS_LABEL[status]}</span>;
+  const { t } = useI18n();
+  return <span className={`badge badge--c-${status}`}>{componentStatusLabel(t, status)}</span>;
 }
 
 export function CraftTag({ project }: { project: Project }) {
+  const { t } = useI18n();
   return (
     <span className="craft-tag">
       <CraftIcon craft={project.craft} size={16} />
-      {CRAFT_LABEL[project.craft]}
+      {craftLabel(t, project.craft)}
     </span>
   );
 }

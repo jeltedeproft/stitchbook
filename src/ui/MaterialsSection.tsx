@@ -9,6 +9,7 @@ import {
 } from '../domain/materials';
 import type { Material, Project } from '../domain/types';
 import { LIMITS, isHexColor, validateName } from '../domain/validation';
+import { useI18n } from '../i18n/I18nProvider';
 import { useStore } from '../state/store';
 import { useToast } from '../state/toast';
 import { Swatch } from './bits';
@@ -18,8 +19,10 @@ import { Sheet } from './Sheet';
 export function MaterialsSection({ project }: { project: Project }) {
   const { update } = useStore();
   const toast = useToast();
+  const { t } = useI18n();
   const [editing, setEditing] = useState<Material | 'new' | null>(null);
-  const noun = project.craft === 'sewing' ? 'fabric or notion' : 'yarn or material';
+  const sewing = project.craft === 'sewing';
+  const addLabel = t(sewing ? 'materials.addSewing' : 'materials.add');
 
   const remove = (m: Material) => {
     let removed: ReturnType<typeof removeMaterial> | undefined;
@@ -28,8 +31,8 @@ export function MaterialsSection({ project }: { project: Project }) {
       return removed?.project ?? p;
     });
     toast({
-      message: `Removed ${m.name}.`,
-      actionLabel: 'Undo',
+      message: t('materials.removed', { name: m.name }),
+      actionLabel: t('common.undo'),
       onAction: () => removed && update(project.id, (p) => restoreMaterial(p, removed!.material, removed!.index)),
     });
   };
@@ -37,14 +40,14 @@ export function MaterialsSection({ project }: { project: Project }) {
   return (
     <section className="section" aria-labelledby="materials-heading">
       <div className="section__head">
-        <h2 id="materials-heading">{project.craft === 'sewing' ? 'Materials' : 'Yarn & materials'}</h2>
-        <button type="button" className="btn btn--soft btn--sm" aria-label={`Add ${noun}`} onClick={() => setEditing('new')}>
-          <PlusIcon size={16} /> Add
+        <h2 id="materials-heading">{t(sewing ? 'materials.headingSewing' : 'materials.heading')}</h2>
+        <button type="button" className="btn btn--soft btn--sm" aria-label={addLabel} onClick={() => setEditing('new')}>
+          <PlusIcon size={16} /> {t('common.add')}
         </button>
       </div>
 
       {project.materials.length === 0 ? (
-        <p className="muted section__empty">No {noun}s yet. Add one to link its colour to a part.</p>
+        <p className="muted section__empty">{t(sewing ? 'materials.emptySewing' : 'materials.empty')}</p>
       ) : (
         <ul className="materials">
           {project.materials.map((m) => (
@@ -55,10 +58,10 @@ export function MaterialsSection({ project }: { project: Project }) {
                 {materialSummary(m) && <span className="muted">{materialSummary(m)}</span>}
                 {m.notes && <span className="material__notes">{m.notes}</span>}
               </div>
-              <button type="button" className="icon-btn" aria-label={`Edit ${m.name}`} onClick={() => setEditing(m)}>
+              <button type="button" className="icon-btn" aria-label={t('common.edit', { name: m.name })} onClick={() => setEditing(m)}>
                 <EditIcon size={18} />
               </button>
-              <button type="button" className="icon-btn" aria-label={`Remove ${m.name}`} onClick={() => remove(m)}>
+              <button type="button" className="icon-btn" aria-label={t('materials.remove', { name: m.name })} onClick={() => remove(m)}>
                 <TrashIcon size={18} />
               </button>
             </li>
@@ -68,7 +71,7 @@ export function MaterialsSection({ project }: { project: Project }) {
 
       {editing && (
         <MaterialForm
-          title={editing === 'new' ? `Add ${noun}` : `Edit ${editing.name}`}
+          title={editing === 'new' ? addLabel : t('common.edit', { name: editing.name })}
           initial={editing === 'new' ? undefined : editing}
           onClose={() => setEditing(null)}
           onSave={(input) => {
@@ -93,6 +96,7 @@ function MaterialForm({
   onClose(): void;
 }) {
   const uid = useId();
+  const { t } = useI18n();
   const [form, setForm] = useState<MaterialInput>({
     name: initial?.name ?? '',
     brand: initial?.brand ?? '',
@@ -107,7 +111,7 @@ function MaterialForm({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const err = validateName(form.name, LIMITS.materialField, 'Name');
+    const err = validateName(form.name, LIMITS.materialField) ? t('materials.nameRequired') : undefined;
     setError(err);
     if (!err) onSave(form);
   };
@@ -132,19 +136,19 @@ function MaterialForm({
       footer={
         <>
           <span className="spacer" />
-          <button type="button" className="btn btn--ghost" onClick={onClose}>Cancel</button>
-          <button type="submit" form={`${uid}-form`} className="btn btn--primary">Save</button>
+          <button type="button" className="btn btn--ghost" onClick={onClose}>{t('common.cancel')}</button>
+          <button type="submit" form={`${uid}-form`} className="btn btn--primary">{t('common.save')}</button>
         </>
       }
     >
       <form id={`${uid}-form`} className="form" onSubmit={submit} noValidate>
         <div className="field">
-          <label htmlFor={`${uid}-name`}>Name</label>
+          <label htmlFor={`${uid}-name`}>{t('common.name')}</label>
           <input
             id={`${uid}-name`}
             value={form.name}
             maxLength={LIMITS.materialField}
-            placeholder="e.g. Highland worsted"
+            placeholder={t('materials.namePlaceholder')}
             onChange={(e) => set('name', e.target.value)}
             aria-invalid={!!error}
             aria-describedby={error ? `${uid}-name-err` : `${uid}-name-hint`}
@@ -153,17 +157,17 @@ function MaterialForm({
           {error ? (
             <p className="field-error" id={`${uid}-name-err`}>{error}</p>
           ) : (
-            <p className="hint" id={`${uid}-name-hint`}>Everything else is optional.</p>
+            <p className="hint" id={`${uid}-name-hint`}>{t('materials.nameHint')}</p>
           )}
         </div>
         <div className="grid-2">
-          {text('brand', 'Brand', 'e.g. Drops')}
-          {text('fiber', 'Fiber', 'e.g. 100% merino')}
-          {text('colorName', 'Colour name', 'e.g. Rust')}
-          {text('weight', 'Weight / amount', 'e.g. DK, 4 skeins')}
+          {text('brand', t('materials.brand'), t('materials.brandPlaceholder'))}
+          {text('fiber', t('materials.fiber'), t('materials.fiberPlaceholder'))}
+          {text('colorName', t('materials.colourName'), t('materials.colourNamePlaceholder'))}
+          {text('weight', t('materials.weight'), t('materials.weightPlaceholder'))}
         </div>
         <div className="field">
-          <span className="label" id={`${uid}-hex-label`}>Colour swatch</span>
+          <span className="label" id={`${uid}-hex-label`}>{t('materials.swatch')}</span>
           <div className="swatch-input">
             <input
               type="color"
@@ -172,20 +176,20 @@ function MaterialForm({
               onChange={(e) => set('colorHex', e.target.value)}
             />
             {form.colorHex ? (
-              <button type="button" className="link-btn" onClick={() => set('colorHex', undefined)}>No swatch</button>
+              <button type="button" className="link-btn" onClick={() => set('colorHex', undefined)}>{t('materials.noSwatch')}</button>
             ) : (
-              <span className="muted">No swatch set</span>
+              <span className="muted">{t('materials.noSwatchSet')}</span>
             )}
           </div>
         </div>
         <div className="field">
-          <label htmlFor={`${uid}-notes`}>Notes</label>
+          <label htmlFor={`${uid}-notes`}>{t('common.notes')}</label>
           <textarea
             id={`${uid}-notes`}
             rows={2}
             value={form.notes ?? ''}
             maxLength={LIMITS.materialNotes}
-            placeholder="Dye lot, where you bought it, care instructions…"
+            placeholder={t('materials.notesPlaceholder')}
             onChange={(e) => set('notes', e.target.value)}
           />
         </div>

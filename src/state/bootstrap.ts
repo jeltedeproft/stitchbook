@@ -1,4 +1,5 @@
 import { sampleProjects } from '../domain/sampleData';
+import type { Lang } from '../i18n/lang';
 import type { Project } from '../domain/types';
 import { IndexedDbProjectRepository } from '../storage/indexedDbRepository';
 import { MemoryProjectRepository } from '../storage/memoryRepository';
@@ -11,7 +12,7 @@ export const SEEDED_KEY = 'seeded';
  * store. The "seeded" flag is set either way, so samples never reappear after being removed and
  * are never mixed into an existing collection.
  */
-export async function loadInitialProjects(repo: ProjectRepository): Promise<Project[]> {
+export async function loadInitialProjects(repo: ProjectRepository, lang: Lang = 'en'): Promise<Project[]> {
   const projects = await repo.loadAll();
   const seeded = await repo.getMeta<boolean>(SEEDED_KEY);
   if (seeded) return projects;
@@ -23,7 +24,7 @@ export async function loadInitialProjects(repo: ProjectRepository): Promise<Proj
 
   // Save samples before setting the flag: if the app closes in between, the next launch sees
   // projects and just sets the flag, rather than ending up flagged with no samples.
-  const samples = sampleProjects();
+  const samples = sampleProjects(lang);
   for (const s of samples) await repo.save(s);
   await repo.setMeta(SEEDED_KEY, true);
   return samples;

@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import { CRAFTS, CRAFT_LABEL, PROJECT_STATUSES, PROJECT_STATUS_LABEL, SWATCHES } from '../domain/craft';
+import { CRAFTS, PROJECT_STATUSES, SWATCHES } from '../domain/craft';
 import { createProject, updateProject } from '../domain/projects';
 import type { Craft, ProjectStatus } from '../domain/types';
 import { LIMITS, validateName } from '../domain/validation';
+import { useI18n } from '../i18n/I18nProvider';
+import { craftLabel, nameIssueText, statusLabel } from '../i18n/labels';
 import { href, navigate } from '../router';
 import { useStore } from '../state/store';
 import { EmptyState } from '../ui/bits';
@@ -11,6 +13,7 @@ import { PhotoPicker } from '../ui/PhotoPicker';
 
 export function ProjectFormScreen({ id }: { id?: string }) {
   const { projects, getProject, add, update } = useStore();
+  const { t } = useI18n();
   const existing = id ? getProject(id) : undefined;
 
   const [name, setName] = useState(existing?.name ?? '');
@@ -24,14 +27,18 @@ export function ProjectFormScreen({ id }: { id?: string }) {
   if (id && !existing) {
     return (
       <div className="page">
-        <EmptyState art="search" title="Project not found" action={<a className="btn btn--primary" href={href.overview()}>Back to projects</a>} />
+        <EmptyState
+          art="search"
+          title={t('common.projectNotFound')}
+          action={<a className="btn btn--primary" href={href.overview()}>{t('common.backToProjects')}</a>}
+        />
       </div>
     );
   }
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const err = validateName(name, LIMITS.projectName, 'Project name');
+    const err = nameIssueText(t, validateName(name, LIMITS.projectName), 'form.nameRequired', LIMITS.projectName);
     setError(err);
     if (err) {
       document.getElementById('project-name')?.focus();
@@ -53,18 +60,18 @@ export function ProjectFormScreen({ id }: { id?: string }) {
   return (
     <div className="page page--narrow">
       <a className="back-link" href={cancelHref}>
-        <BackIcon size={18} /> {existing ? existing.name : 'All projects'}
+        <BackIcon size={18} /> {existing ? existing.name : t('common.allProjects')}
       </a>
-      <h1>{existing ? 'Edit project' : 'New project'}</h1>
+      <h1>{existing ? t('form.editTitle') : t('common.newProject')}</h1>
 
       <form className="form card" onSubmit={submit} noValidate>
         <div className="field">
-          <label htmlFor="project-name">Project name</label>
+          <label htmlFor="project-name">{t('form.name')}</label>
           <input
             id="project-name"
             value={name}
             maxLength={LIMITS.projectName}
-            placeholder="e.g. Autumn socks"
+            placeholder={t('form.namePlaceholder')}
             autoFocus={!existing}
             onChange={(e) => {
               setName(e.target.value);
@@ -77,36 +84,36 @@ export function ProjectFormScreen({ id }: { id?: string }) {
         </div>
 
         <fieldset className="field">
-          <legend>Craft</legend>
+          <legend>{t('craft.label')}</legend>
           <div className="craft-picker">
             {CRAFTS.map((c) => (
               <label key={c} className={`craft-option ${craft === c ? 'is-on' : ''}`}>
                 <input type="radio" name="craft" value={c} checked={craft === c} onChange={() => setCraft(c)} />
                 <CraftIcon craft={c} size={26} />
-                <span>{CRAFT_LABEL[c]}</span>
+                <span>{craftLabel(t, c)}</span>
               </label>
             ))}
           </div>
-          {craft === 'sewing' && <p className="hint">Row and stitch counters are off by default for sewing parts — switch them on per part if you need them.</p>}
+          {craft === 'sewing' && <p className="hint">{t('form.sewingHint')}</p>}
         </fieldset>
 
         <div className="field">
-          <label htmlFor="project-status-input">Status</label>
+          <label htmlFor="project-status-input">{t('common.status')}</label>
           <select id="project-status-input" value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
             {PROJECT_STATUSES.map((s) => (
-              <option key={s} value={s}>{PROJECT_STATUS_LABEL[s]}</option>
+              <option key={s} value={s}>{statusLabel(t, s)}</option>
             ))}
           </select>
         </div>
 
         <fieldset className="field">
-          <legend>Colour tag</legend>
-          <p className="hint">Shown on the card when there's no photo.</p>
+          <legend>{t('form.colourTag')}</legend>
+          <p className="hint">{t('form.colourTagHint')}</p>
           <div className="swatch-picker">
             {SWATCHES.map((s, i) => (
               <label key={s} className={`swatch-option ${swatch === s ? 'is-on' : ''}`} style={{ backgroundColor: s }}>
                 <input type="radio" name="swatch" value={s} checked={swatch === s} onChange={() => setSwatch(s)} />
-                <span className="visually-hidden">Colour {i + 1}</span>
+                <span className="visually-hidden">{t('common.colourN', { n: i + 1 })}</span>
               </label>
             ))}
           </div>
@@ -115,20 +122,20 @@ export function ProjectFormScreen({ id }: { id?: string }) {
         <PhotoPicker value={photo} onChange={setPhoto} />
 
         <div className="field">
-          <label htmlFor="project-notes">Notes</label>
+          <label htmlFor="project-notes">{t('common.notes')}</label>
           <textarea
             id="project-notes"
             rows={4}
             value={notes}
             maxLength={LIMITS.projectNotes}
-            placeholder="Pattern, size, modifications, who it's for…"
+            placeholder={t('form.notesPlaceholder')}
             onChange={(e) => setNotes(e.target.value)}
           />
         </div>
 
         <div className="form__actions">
-          <a className="btn btn--ghost" href={cancelHref}>Cancel</a>
-          <button type="submit" className="btn btn--primary">{existing ? 'Save changes' : 'Create project'}</button>
+          <a className="btn btn--ghost" href={cancelHref}>{t('common.cancel')}</a>
+          <button type="submit" className="btn btn--primary">{existing ? t('form.saveChanges') : t('form.create')}</button>
         </div>
       </form>
     </div>

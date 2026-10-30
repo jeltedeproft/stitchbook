@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { backupFileName, createBackup } from '../storage/backup';
+import { BackupFormatError, backupFileName, createBackup } from '../storage/backup';
+import { useI18n } from '../i18n/I18nProvider';
+import { LANGS } from '../i18n/lang';
 import { href } from '../router';
 import { useStore } from '../state/store';
 import { useToast } from '../state/toast';
 import { BackIcon, DownloadIcon, UploadIcon } from '../ui/icons';
 import { ConfirmDialog } from '../ui/Sheet';
 
+const LANG_NAMES = { en: 'English', fr: 'Français' } as const;
+
 export function SettingsScreen() {
   const { projects, storageKind, importJson, removeSamples } = useStore();
   const toast = useToast();
+  const { t, tp, lang, setLang } = useI18n();
   const [importError, setImportError] = useState<string>();
   const [confirmSamples, setConfirmSamples] = useState(false);
   const sampleCount = projects.filter((p) => p.isSample).length;
@@ -23,44 +28,54 @@ export function SettingsScreen() {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast({ message: `Exported ${projects.length} project${projects.length === 1 ? '' : 's'}.` });
+    toast({ message: tp('settings.exported', projects.length) });
   };
 
   return (
     <div className="page page--narrow">
       <a className="back-link" href={href.overview()}>
-        <BackIcon size={18} /> All projects
+        <BackIcon size={18} /> {t('common.allProjects')}
       </a>
-      <h1>Your data</h1>
+      <h1>{t('settings.title')}</h1>
+
+      <section className="card">
+        <h2 id="language-heading">{t('settings.languageTitle')}</h2>
+        <div className="segmented" role="radiogroup" aria-labelledby="language-heading">
+          {LANGS.map((l) => (
+            <label key={l} className={lang === l ? 'is-on' : ''} lang={l}>
+              <input type="radio" name="language" value={l} checked={lang === l} onChange={() => setLang(l)} />
+              {LANG_NAMES[l]}
+            </label>
+          ))}
+        </div>
+        {sampleCount > 0 && <p className="hint">{t('settings.languageHint')}</p>}
+      </section>
 
       <section className="card prose">
-        <h2>Where your projects are kept</h2>
+        <h2>{t('settings.whereTitle')}</h2>
         {storageKind === 'memory' ? (
-          <p className="warn">
-            This browser is blocking storage, so projects only last until this tab closes. Open the app in a normal
-            (non-private) window to keep your work.
-          </p>
+          <p className="warn">{t('settings.memoryWarning')}</p>
         ) : (
           <p>
-            Projects are saved automatically <strong>on this device, in this browser</strong>. Nothing is uploaded, and
-            they're still here when you close and reopen the app.
+            {t('settings.deviceBefore')}
+            <strong>{t('settings.deviceStrong')}</strong>
+            {t('settings.deviceAfter')}
           </p>
         )}
         <p>
-          <strong>Sharing between the two of you:</strong> the app doesn't sync on its own yet. To share, export a backup
-          and send the file to your friend; when they import it, new projects are added and, for projects you both have,
-          the most recently changed version is kept. Exporting regularly is also a good backup.
+          <strong>{t('settings.shareStrong')}</strong>
+          {t('settings.shareBody')}
         </p>
       </section>
 
       <section className="card">
-        <h2>Backup &amp; share</h2>
+        <h2>{t('settings.backupTitle')}</h2>
         <div className="button-row">
           <button type="button" className="btn btn--primary" onClick={exportAll} disabled={projects.length === 0}>
-            <DownloadIcon size={18} /> Export all projects
+            <DownloadIcon size={18} /> {t('settings.export')}
           </button>
           <label className="btn btn--soft file-btn" htmlFor="import-file">
-            <UploadIcon size={18} /> Import a backup
+            <UploadIcon size={18} /> {t('settings.import')}
           </label>
           <input
             id="import-file"
@@ -74,36 +89,34 @@ export function SettingsScreen() {
               setImportError(undefined);
               try {
                 const r = await importJson(await file.text());
-                toast({
-                  message: `Imported: ${r.added} new, ${r.updated} updated${r.skipped ? `, ${r.skipped} skipped` : ''}.`,
-                });
+                toast({ message: t(r.skipped ? 'settings.importedSkipped' : 'settings.imported', { added: r.added, updated: r.updated, skipped: r.skipped }) });
               } catch (err) {
-                setImportError(err instanceof Error ? err.message : 'That file could not be imported.');
+                setImportError(t(err instanceof BackupFormatError ? `settings.${err.code}` : 'settings.importFailed'));
               }
             }}
           />
         </div>
-        {importError && <p className="field-error" role="alert">{importError} Nothing was changed.</p>}
+        {importError && <p className="field-error" role="alert">{importError} {t('settings.nothingChanged')}</p>}
       </section>
 
       {sampleCount > 0 && (
         <section className="card">
-          <h2>Sample projects</h2>
-          <p className="muted">{sampleCount} sample project{sampleCount === 1 ? '' : 's'} are shown to help you explore.</p>
-          <button type="button" className="btn btn--soft" onClick={() => setConfirmSamples(true)}>Remove samples</button>
+          <h2>{t('settings.samplesTitle')}</h2>
+          <p className="muted">{tp('settings.samplesBody', sampleCount)}</p>
+          <button type="button" className="btn btn--soft" onClick={() => setConfirmSamples(true)}>{t('samples.remove')}</button>
         </section>
       )}
 
       {confirmSamples && (
         <ConfirmDialog
-          title="Remove sample projects?"
-          message="Sample projects will be deleted. Your own projects are not affected."
-          confirmLabel="Remove samples"
+          title={t('samples.confirmTitle')}
+          message={t('settings.samplesConfirmBody')}
+          confirmLabel={t('samples.remove')}
           onCancel={() => setConfirmSamples(false)}
           onConfirm={async () => {
             setConfirmSamples(false);
             const n = await removeSamples();
-            toast({ message: `Removed ${n} sample project${n === 1 ? '' : 's'}.` });
+            toast({ message: tp('samples.removed', n) });
           }}
         />
       )}

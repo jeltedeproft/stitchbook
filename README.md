@@ -40,13 +40,25 @@ Three sample projects (labelled *Sample*) appear in an empty store, once only. R
 overview or the *Your data* page. They never come back, and they are never added to a store that
 already has projects.
 
+## Languages: English and Français
+
+The app opens in French when the browser prefers French, and in English otherwise. Switch any time
+with the **FR / EN** button in the header or under *Your data → Language*. The choice is remembered
+on that device. Switching never changes your data. Sample projects stay in the language they were
+created in.
+
+Strings live in `src/i18n/messages.ts`. `fr` is typed against `en`, so a missing French string
+fails the type-check, and `tests/i18n/messages.test.ts` checks that placeholders and plurals match.
+Write French with ordinary spaces: the no-break spaces before `:` `?` `!` and inside « » are added
+automatically.
+
 ## Terminology
 
-| You say | The app shows |
-|---------|---------------|
-| rank | **Row / Round** (chosen per part) |
-| mailles | **Stitches** |
-| needle / hook | **Needle size** (knitting), **Hook size** (crochet), **Needle / tool** (sewing, other) |
+| You say | English | Français |
+|---------|---------|----------|
+| rank | **Row / Round** (chosen per part) | **Rang / Tour** |
+| mailles | **Stitches** | **Mailles** |
+| needle / hook | **Needle size**, **Hook size**, **Needle / tool** | **Taille d'aiguille**, **Taille de crochet**, **Aiguille / outil** |
 
 ## Code map
 

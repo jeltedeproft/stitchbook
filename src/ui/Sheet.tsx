@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useI18n } from '../i18n/I18nProvider';
 import { CloseIcon } from './icons';
 
 interface SheetProps {
@@ -15,6 +16,7 @@ const FOCUSABLE =
 /** Modal panel: bottom sheet on phones, centred dialog on wider screens. Traps focus, Esc closes. */
 export function Sheet({ title, onClose, children, footer, size = 'md' }: SheetProps) {
   const titleId = useId();
+  const { t } = useI18n();
   const panel = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -64,7 +66,7 @@ export function Sheet({ title, onClose, children, footer, size = 'md' }: SheetPr
       >
         <header className="sheet__header">
           <h2 id={titleId}>{title}</h2>
-          <button type="button" className="icon-btn" aria-label="Close" onClick={onClose}>
+          <button type="button" className="icon-btn" aria-label={t('common.close')} onClick={onClose}>
             <CloseIcon />
           </button>
         </header>
@@ -84,6 +86,7 @@ interface ConfirmProps {
 }
 
 export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCancel }: ConfirmProps) {
+  const { t } = useI18n();
   return (
     <Sheet
       title={title}
@@ -92,7 +95,7 @@ export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCance
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onCancel} data-autofocus>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="button" className="btn btn--danger" onClick={onConfirm}>
             {confirmLabel}

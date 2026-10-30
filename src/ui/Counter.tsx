@@ -1,5 +1,6 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
 import { MAX_COUNT, parseCount } from '../domain/validation';
+import { formatNumber, useI18n } from '../i18n/I18nProvider';
 import { MinusIcon, PlusIcon, ResetIcon } from './icons';
 
 interface CounterProps {
@@ -21,11 +22,13 @@ function tick() {
 
 /** A tally counter: large − / + buttons, the number itself opens direct entry. */
 export function Counter({ label, value, target, onChange, onSet, onReset }: CounterProps) {
+  const { t, lang } = useI18n();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string>();
   const inputId = useId();
   const valueButton = useRef<HTMLButtonElement>(null);
+  const names = { label, lower: label.toLowerCase() };
 
   const startEdit = () => {
     setDraft(String(value));
@@ -43,7 +46,11 @@ export function Counter({ label, value, target, onChange, onSet, onReset }: Coun
     e.preventDefault();
     const parsed = parseCount(draft);
     if ('error' in parsed) {
-      setError(parsed.error);
+      setError(
+        parsed.error === 'tooBig'
+          ? t('counter.tooBig', { max: formatNumber(lang, MAX_COUNT) })
+          : t('counter.notWhole'),
+      );
       return;
     }
     onSet(parsed.value);
@@ -55,8 +62,8 @@ export function Counter({ label, value, target, onChange, onSet, onReset }: Coun
       <div className="counter__head">
         <span className="counter__label">{label}</span>
         {value > 0 && (
-          <button type="button" className="link-btn counter__reset" onClick={onReset} aria-label={`Reset ${label.toLowerCase()} to 0`}>
-            <ResetIcon size={14} /> Reset
+          <button type="button" className="link-btn counter__reset" onClick={onReset} aria-label={t('counter.resetLabel', names)}>
+            <ResetIcon size={14} /> {t('counter.reset')}
           </button>
         )}
       </div>
@@ -64,7 +71,7 @@ export function Counter({ label, value, target, onChange, onSet, onReset }: Coun
         <button
           type="button"
           className="counter__btn"
-          aria-label={`Decrease ${label.toLowerCase()}`}
+          aria-label={t('counter.decrease', names)}
           disabled={value <= 0}
           onClick={() => {
             tick();
@@ -77,7 +84,7 @@ export function Counter({ label, value, target, onChange, onSet, onReset }: Coun
         {editing ? (
           <form className="counter__edit" onSubmit={submit} noValidate>
             <label className="visually-hidden" htmlFor={inputId}>
-              {`Set ${label.toLowerCase()}`}
+              {t('counter.set', names)}
             </label>
             <input
               id={inputId}
@@ -98,7 +105,7 @@ export function Counter({ label, value, target, onChange, onSet, onReset }: Coun
               }}
             />
             <button type="submit" className="counter__set">
-              Set
+              {t('counter.setButton')}
             </button>
           </form>
         ) : (
@@ -107,7 +114,11 @@ export function Counter({ label, value, target, onChange, onSet, onReset }: Coun
             type="button"
             className="counter__value"
             onClick={startEdit}
-            aria-label={`${label}: ${value}${target ? ` of ${target}` : ''}. Tap to type a number.`}
+            aria-label={
+              target
+                ? t('counter.valueTarget', { label, value, target })
+                : t('counter.value', { label, value })
+            }
           >
             <span className="counter__num">{value}</span>
             {target ? <small> / {target}</small> : null}
@@ -120,7 +131,7 @@ export function Counter({ label, value, target, onChange, onSet, onReset }: Coun
         <button
           type="button"
           className="counter__btn counter__btn--up"
-          aria-label={`Increase ${label.toLowerCase()}`}
+          aria-label={t('counter.increase', names)}
           disabled={value >= MAX_COUNT}
           onClick={() => {
             tick();

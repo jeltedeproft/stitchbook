@@ -1,19 +1,28 @@
 import { useId, useState } from 'react';
+import { useI18n } from '../i18n/I18nProvider';
 import { ImageIcon, TrashIcon } from './icons';
 
 const MAX_SIDE = 1200;
 const MAX_INPUT_BYTES = 25 * 1024 * 1024;
 
+export type PhotoIssue = 'notImage' | 'tooLarge' | 'unreadable' | 'unsupported';
+
+export class PhotoError extends Error {
+  constructor(readonly code: PhotoIssue) {
+    super(`Photo: ${code}`);
+  }
+}
+
 /** Reads an image file and downscales it to a JPEG data URL so stored projects stay small. */
 export async function fileToPhoto(file: File): Promise<string> {
-  if (!file.type.startsWith('image/')) throw new Error('Please choose an image file (JPG, PNG, HEIC…).');
-  if (file.size > MAX_INPUT_BYTES) throw new Error('That image is larger than 25 MB. Please pick a smaller one.');
+  if (!file.type.startsWith('image/')) throw new PhotoError('notImage');
+  if (file.size > MAX_INPUT_BYTES) throw new PhotoError('tooLarge');
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
       const el = new Image();
       el.onload = () => resolve(el);
-      el.onerror = () => reject(new Error('That image could not be read. Try a JPG or PNG.'));
+      el.onerror = () => reject(new PhotoError('unreadable'));
       el.src = url;
     });
     const scale = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
@@ -21,7 +30,7 @@ export async function fileToPhoto(file: File): Promise<string> {
     canvas.width = Math.round(img.naturalWidth * scale);
     canvas.height = Math.round(img.naturalHeight * scale);
     const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('This browser cannot process images.');
+    if (!ctx) throw new PhotoError('unsupported');
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/jpeg', 0.82);
   } finally {
@@ -31,17 +40,18 @@ export async function fileToPhoto(file: File): Promise<string> {
 
 export function PhotoPicker({ value, onChange }: { value?: string; onChange(photo: string | undefined): void }) {
   const id = useId();
+  const { t } = useI18n();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
 
   return (
     <div className="field">
-      <span className="label">Photo (optional)</span>
+      <span className="label">{t('photo.label')}</span>
       <div className="photo-picker">
-        {value ? <img src={value} alt="Current project photo" /> : <div className="photo-picker__empty"><ImageIcon size={28} /></div>}
+        {value ? <img src={value} alt={t('photo.current')} /> : <div className="photo-picker__empty"><ImageIcon size={28} /></div>}
         <div className="photo-picker__actions">
           <label htmlFor={id} className="btn btn--soft btn--sm file-btn">
-            {busy ? 'Processing…' : value ? 'Change photo' : 'Add photo'}
+            {busy ? t('photo.processing') : value ? t('photo.change') : t('photo.add')}
           </label>
           <input
             id={id}
@@ -57,7 +67,7 @@ export function PhotoPicker({ value, onChange }: { value?: string; onChange(phot
               try {
                 onChange(await fileToPhoto(file));
               } catch (err) {
-                setError(err instanceof Error ? err.message : 'That image could not be used.');
+                setError(t(`photo.${err instanceof PhotoError ? err.code : 'unreadable'}`));
               } finally {
                 setBusy(false);
               }
@@ -65,7 +75,7 @@ export function PhotoPicker({ value, onChange }: { value?: string; onChange(phot
           />
           {value && (
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => onChange(undefined)}>
-              <TrashIcon size={16} /> Remove
+              <TrashIcon size={16} /> {t('common.remove')}
             </button>
           )}
         </div>

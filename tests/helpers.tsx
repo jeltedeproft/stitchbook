@@ -3,6 +3,8 @@ import { App } from '../src/App';
 import { addComponent } from '../src/domain/components';
 import { createProject } from '../src/domain/projects';
 import type { Craft, Project } from '../src/domain/types';
+import { I18nProvider } from '../src/i18n/I18nProvider';
+import type { Lang } from '../src/i18n/lang';
 import { SEEDED_KEY } from '../src/state/bootstrap';
 import { StoreProvider } from '../src/state/store';
 import { ToastProvider } from '../src/state/toast';
@@ -22,14 +24,16 @@ export async function seededRepo(projects: Project[], repo: ProjectRepository = 
   return repo;
 }
 
-export function renderApp(repo: ProjectRepository) {
+export function renderApp(repo: ProjectRepository, lang?: Lang) {
   const open = () => Promise.resolve(repo);
   return render(
-    <ToastProvider>
-      <StoreProvider openRepository={open}>
-        <App />
-      </StoreProvider>
-    </ToastProvider>,
+    <I18nProvider initialLang={lang}>
+      <ToastProvider>
+        <StoreProvider openRepository={open}>
+          <App />
+        </StoreProvider>
+      </ToastProvider>
+    </I18nProvider>,
   );
 }
 

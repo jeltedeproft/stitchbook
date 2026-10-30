@@ -26,24 +26,23 @@ export function isHexColor(value: unknown): value is string {
   return typeof value === 'string' && HEX.test(value);
 }
 
-/** Returns an error message, or undefined when the name is valid. */
-export function validateName(value: string, max: number, what = 'Name'): string | undefined {
+export type NameIssue = 'required' | 'tooLong';
+export type CountIssue = 'notWhole' | 'tooBig';
+
+/** Returns what is wrong with a name (the UI turns this into text), or undefined when valid. */
+export function validateName(value: string, max: number): NameIssue | undefined {
   const trimmed = value.trim();
-  if (!trimmed) return `${what} is required.`;
-  if (trimmed.length > max) return `${what} must be ${max} characters or fewer.`;
+  if (!trimmed) return 'required';
+  if (trimmed.length > max) return 'tooLong';
   return undefined;
 }
 
-/** Parses user-typed counter input. Returns the number or an error message. */
-
 /** Parses user-typed counter input. Returns the number or what is wrong with it. */
-export function parseCount(input: string): { value: number } | { error: string } {
+export function parseCount(input: string): { value: number } | { error: CountIssue } {
   const trimmed = input.trim();
-  if (!/^\d+$/.test(trimmed)) {
-    return { error: 'Enter a whole number of 0 or more.' };
-  }
+  if (!/^\d+$/.test(trimmed)) return { error: 'notWhole' };
   const value = Number(trimmed);
-  if (value > MAX_COUNT) return { error: `Counts go up to ${MAX_COUNT.toLocaleString('en')}.` };
+  if (value > MAX_COUNT) return { error: 'tooBig' };
   return { value };
 }
 

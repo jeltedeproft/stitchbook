@@ -6,8 +6,8 @@ import { ValidationError } from './projects';
 export type MaterialInput = Omit<Material, 'id'>;
 
 function clean(input: MaterialInput): MaterialInput {
-  const error = validateName(input.name, LIMITS.materialField, 'Material name');
-  if (error) throw new ValidationError(error);
+  const issue = validateName(input.name, LIMITS.materialField);
+  if (issue) throw new ValidationError(`Material name: ${issue}`);
   const s = (v: string | undefined, max: number = LIMITS.materialField) => v?.trim().slice(0, max) || undefined;
   return {
     name: input.name.trim(),

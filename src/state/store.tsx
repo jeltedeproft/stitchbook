@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { Project } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
 import { importBackup, type ImportResult } from '../storage/backup';
 import type { ProjectRepository } from '../storage/repository';
 import { loadInitialProjects, openDefaultRepository } from './bootstrap';
@@ -46,6 +47,9 @@ export function StoreProvider({ children, openRepository = openDefaultRepository
   const [projects, setProjects] = useState<Project[]>([]);
   const [attempt, setAttempt] = useState(0);
   const repoRef = useRef<ProjectRepository | null>(null);
+  // Samples are created in the language active at first launch; switching later doesn't reload.
+  const { lang } = useI18n();
+  const langRef = useRef(lang);
   // Mirror of `projects` so rapid taps always build on the latest value, not a stale render.
   const projectsRef = useRef<Project[]>([]);
 
@@ -61,7 +65,7 @@ export function StoreProvider({ children, openRepository = openDefaultRepository
       try {
         const repo = repoRef.current ?? (await openRepository());
         repoRef.current = repo;
-        const loaded = await loadInitialProjects(repo);
+        const loaded = await loadInitialProjects(repo, langRef.current);
         if (cancelled) return;
         setAll(loaded);
         setStatus('ready');

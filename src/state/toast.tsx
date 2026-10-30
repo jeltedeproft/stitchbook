@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n/I18nProvider';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 export interface ToastOptions {
@@ -19,6 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const counter = useRef(0);
+  const { t } = useI18n();
 
   const dismiss = useCallback(() => {
     clearTimeout(timer.current);
@@ -53,7 +55,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 {toast.actionLabel}
               </button>
             )}
-            <button type="button" className="toast__close" aria-label="Dismiss" onClick={dismiss}>
+            <button type="button" className="toast__close" aria-label={t('common.dismiss')} onClick={dismiss}>
               ×
             </button>
           </div>

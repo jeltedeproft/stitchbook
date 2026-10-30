@@ -13,8 +13,8 @@ function touch(project: Project, components: ProjectComponent[]): Project {
 }
 
 export function addComponent(project: Project, name: string): Project {
-  const error = validateName(name, LIMITS.componentName, 'Component name');
-  if (error) throw new ValidationError(error);
+  const issue = validateName(name, LIMITS.componentName);
+  if (issue) throw new ValidationError(`Component name: ${issue}`);
   const component: ProjectComponent = {
     id: newId(),
     name: name.trim(),
@@ -30,8 +30,8 @@ export function addComponent(project: Project, name: string): Project {
 
 export function updateComponent(project: Project, id: string, patch: ComponentPatch): Project {
   if (patch.name !== undefined) {
-    const error = validateName(patch.name, LIMITS.componentName, 'Component name');
-    if (error) throw new ValidationError(error);
+    const issue = validateName(patch.name, LIMITS.componentName);
+    if (issue) throw new ValidationError(`Component name: ${issue}`);
   }
   const components = project.components.map((c) => {
     if (c.id !== id) return c;

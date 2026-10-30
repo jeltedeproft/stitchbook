@@ -106,7 +106,7 @@ describe('project overview', () => {
     broken.loadAll = () => Promise.reject(new Error('Disk on fire'));
     renderApp(broken);
     expect(await screen.findByText("We couldn't open your projects")).toBeInTheDocument();
-    expect(screen.getByText('Disk on fire')).toBeInTheDocument();
+    expect(screen.getByText(/Disk on fire/)).toBeInTheDocument();
   });
 
   it('warns when a change could not be saved', async () => {

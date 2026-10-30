@@ -13,9 +13,9 @@ export function projectProgress(p: Project): number {
   return sum / p.components.length;
 }
 
-export function progressSummary(p: Project): string {
-  const total = p.components.length;
-  if (total === 0) return p.status === 'completed' ? 'Finished' : 'No components yet';
-  const done = p.components.filter((c) => c.status === 'complete').length;
-  return `${done} of ${total} part${total === 1 ? '' : 's'} done`;
+export function partCounts(p: Project): { done: number; total: number } {
+  return {
+    done: p.components.filter((c) => c.status === 'complete').length,
+    total: p.components.length,
+  };
 }

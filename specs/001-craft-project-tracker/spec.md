@@ -232,4 +232,4 @@ samples do not return; export and import a file and confirm projects match.
 - No user accounts or authentication in v1 (nothing is sent to a server).
 - Metric tool sizes with US equivalents are shown; free text covers UK and other systems.
 - Reordering uses move up/down controls (reliable on touch and keyboard) rather than drag-and-drop.
-- English UI.
+- English UI. (Superseded by spec 002: English + French.)

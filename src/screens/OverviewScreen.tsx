@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
-import { CRAFTS, CRAFT_LABEL, PROJECT_STATUSES, PROJECT_STATUS_LABEL, unitLabel } from '../domain/craft';
+import { CRAFTS, PROJECT_STATUSES } from '../domain/craft';
 import { continueCandidate, sortByRecent } from '../domain/projects';
 import { DEFAULT_FILTER, filterProjects, type ProjectFilter } from '../domain/search';
+import { useI18n } from '../i18n/I18nProvider';
+import { craftLabel, statusLabel, unitLabel } from '../i18n/labels';
 import { href } from '../router';
 import { useStore } from '../state/store';
 import { EmptyState, ProjectVisual } from '../ui/bits';
@@ -13,6 +15,7 @@ import { useToast } from '../state/toast';
 export function OverviewScreen() {
   const { projects, removeSamples } = useStore();
   const toast = useToast();
+  const { t, tp } = useI18n();
   const [filter, setFilter] = useState<ProjectFilter>(DEFAULT_FILTER);
   const [confirmSamples, setConfirmSamples] = useState(false);
 
@@ -27,21 +30,26 @@ export function OverviewScreen() {
   const filtering = filter.query !== '' || filter.status !== 'all' || filter.craft !== 'all';
 
   const set = (patch: Partial<ProjectFilter>) => setFilter((f) => ({ ...f, ...patch }));
+  const newProjectLink = (
+    <a className="btn btn--primary" href={href.newProject()}>
+      <PlusIcon size={18} /> {t('common.newProject')}
+    </a>
+  );
 
   return (
     <div className="page">
       <section className="hero">
         <div>
-          <p className="eyebrow">{greeting()}</p>
-          <h1>Your projects</h1>
+          <p className="eyebrow">{t(greetingKey())}</p>
+          <h1>{t('overview.title')}</h1>
           <p className="muted">
             {activeCount === 0
-              ? 'Nothing on the needles yet.'
-              : `${activeCount} project${activeCount === 1 ? '' : 's'} on the go${archivedCount ? `, ${archivedCount} archived` : ''}.`}
+              ? t('overview.nothing')
+              : `${tp('overview.active', activeCount)}${archivedCount ? tp('overview.archivedSuffix', archivedCount) : ''}.`}
           </p>
         </div>
         <a className="btn btn--primary hero__new" href={href.newProject()}>
-          <PlusIcon size={18} /> New project
+          <PlusIcon size={18} /> {t('common.newProject')}
         </a>
       </section>
 
@@ -49,15 +57,18 @@ export function OverviewScreen() {
         <a className="resume" href={href.project(resume.id, resumeComponent.id)}>
           <ProjectVisual project={resume} className="resume__visual" />
           <div className="resume__text">
-            <span className="eyebrow">Pick up where you left off</span>
+            <span className="eyebrow">{t('overview.resume')}</span>
             <strong className="resume__title">{resume.name}</strong>
             <span>
               {resumeComponent.name}
               {resumeComponent.countersEnabled && (
                 <>
                   {' · '}
-                  {unitLabel(resumeComponent.countUnit)} {resumeComponent.rows}
-                  {resumeComponent.targetRows ? ` of ${resumeComponent.targetRows}` : ''}
+                  {t(resumeComponent.targetRows ? 'overview.resumeCountTarget' : 'overview.resumeCount', {
+                    unit: unitLabel(t, resumeComponent.countUnit),
+                    count: resumeComponent.rows,
+                    target: resumeComponent.targetRows ?? '',
+                  })}
                 </>
               )}
             </span>
@@ -65,17 +76,18 @@ export function OverviewScreen() {
           <span className="resume__go" aria-hidden="true">
             <PlayIcon size={18} />
           </span>
-          <span className="visually-hidden">Continue</span>
+          <span className="visually-hidden">{t('overview.continue')}</span>
         </a>
       )}
 
       {hasSamples && (
         <div className="notice">
           <p>
-            <strong>These are sample projects</strong> to show you around. Your own projects are never mixed with them.
+            <strong>{t('overview.sampleStrong')}</strong>
+            {t('overview.sampleRest')}
           </p>
           <button type="button" className="btn btn--soft btn--sm" onClick={() => setConfirmSamples(true)}>
-            Remove samples
+            {t('samples.remove')}
           </button>
         </div>
       )}
@@ -83,25 +95,25 @@ export function OverviewScreen() {
       <div className="toolbar" role="search">
         <div className="search">
           <SearchIcon />
-          <label htmlFor="search" className="visually-hidden">Search projects</label>
+          <label htmlFor="search" className="visually-hidden">{t('overview.search')}</label>
           <input
             id="search"
             type="search"
-            placeholder="Search by name, yarn, notes…"
+            placeholder={t('overview.searchPlaceholder')}
             value={filter.query}
             onChange={(e) => set({ query: e.target.value })}
           />
         </div>
-        <label htmlFor="craft-filter" className="visually-hidden">Craft</label>
+        <label htmlFor="craft-filter" className="visually-hidden">{t('craft.label')}</label>
         <select id="craft-filter" className="select-sm" value={filter.craft} onChange={(e) => set({ craft: e.target.value as ProjectFilter['craft'] })}>
-          <option value="all">All crafts</option>
+          <option value="all">{t('craft.all')}</option>
           {CRAFTS.map((c) => (
-            <option key={c} value={c}>{CRAFT_LABEL[c]}</option>
+            <option key={c} value={c}>{craftLabel(t, c)}</option>
           ))}
         </select>
       </div>
 
-      <div className="chips" role="group" aria-label="Filter by status">
+      <div className="chips" role="group" aria-label={t('overview.filterStatus')}>
         {(['all', ...PROJECT_STATUSES] as const).map((s) => (
           <button
             key={s}
@@ -110,59 +122,53 @@ export function OverviewScreen() {
             aria-pressed={filter.status === s}
             onClick={() => set({ status: s })}
           >
-            {s === 'all' ? 'All' : PROJECT_STATUS_LABEL[s]}
+            {s === 'all' ? t('overview.all') : statusLabel(t, s)}
           </button>
         ))}
         <span className="chips__sep" aria-hidden="true" />
         <button type="button" className="chip" aria-pressed={filter.archived} onClick={() => set({ archived: !filter.archived })}>
-          Archived{archivedCount ? ` (${archivedCount})` : ''}
+          {archivedCount ? t('overview.archivedChipCount', { count: archivedCount }) : t('overview.archivedChip')}
         </button>
       </div>
 
       {visible.length > 0 ? (
-        <ul className="pgrid" aria-label={filter.archived ? 'Archived projects' : 'Projects'}>
+        <ul className="pgrid" aria-label={t(filter.archived ? 'overview.listArchived' : 'overview.list')}>
           {visible.map((p) => (
             <ProjectCard key={p.id} project={p} />
           ))}
         </ul>
       ) : projects.length === 0 ? (
-        <EmptyState
-          title="Cast on your first project"
-          action={<a className="btn btn--primary" href={href.newProject()}><PlusIcon size={18} /> New project</a>}
-        >
-          Add a sweater, socks, a blanket or a dress. Break it into parts and count rows as you go.
+        <EmptyState title={t('overview.emptyTitle')} action={newProjectLink}>
+          {t('overview.emptyBody')}
         </EmptyState>
       ) : filtering ? (
         <EmptyState
           art="search"
-          title="No projects match"
-          action={<button type="button" className="btn btn--soft" onClick={() => setFilter({ ...DEFAULT_FILTER, archived: filter.archived })}>Clear filters</button>}
+          title={t('overview.noMatchTitle')}
+          action={<button type="button" className="btn btn--soft" onClick={() => setFilter({ ...DEFAULT_FILTER, archived: filter.archived })}>{t('overview.clearFilters')}</button>}
         >
-          Try another word, or clear the filters to see everything.
+          {t('overview.noMatchBody')}
         </EmptyState>
       ) : filter.archived ? (
-        <EmptyState art="search" title="Nothing archived">
-          Finished projects you archive will rest here, out of the way.
+        <EmptyState art="search" title={t('overview.noArchivedTitle')}>
+          {t('overview.noArchivedBody')}
         </EmptyState>
       ) : (
-        <EmptyState
-          title="All your projects are archived"
-          action={<a className="btn btn--primary" href={href.newProject()}><PlusIcon size={18} /> New project</a>}
-        >
-          Time to start something new?
+        <EmptyState title={t('overview.allArchivedTitle')} action={newProjectLink}>
+          {t('overview.allArchivedBody')}
         </EmptyState>
       )}
 
       {confirmSamples && (
         <ConfirmDialog
-          title="Remove sample projects?"
-          message="The three sample projects will be deleted. Your own projects are not affected, and samples won't come back."
-          confirmLabel="Remove samples"
+          title={t('samples.confirmTitle')}
+          message={t('samples.confirmBody')}
+          confirmLabel={t('samples.remove')}
           onCancel={() => setConfirmSamples(false)}
           onConfirm={async () => {
             setConfirmSamples(false);
             const n = await removeSamples();
-            toast({ message: `Removed ${n} sample project${n === 1 ? '' : 's'}.` });
+            toast({ message: tp('samples.removed', n) });
           }}
         />
       )}
@@ -170,9 +176,9 @@ export function OverviewScreen() {
   );
 }
 
-function greeting(): string {
+function greetingKey() {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return 'overview.morning' as const;
+  if (h < 18) return 'overview.afternoon' as const;
+  return 'overview.evening' as const;
 }

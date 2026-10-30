@@ -1,10 +1,13 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { addComponent, removeComponent, restoreComponent, updateComponent } from '../domain/components';
-import { PROJECT_STATUSES, PROJECT_STATUS_LABEL } from '../domain/craft';
+import { PROJECT_STATUSES } from '../domain/craft';
 import { setArchived, updateProject } from '../domain/projects';
 import { projectProgress } from '../domain/progress';
-import type { Craft, Project, ProjectStatus } from '../domain/types';
+import type { Project, ProjectStatus } from '../domain/types';
 import { LIMITS, validateName } from '../domain/validation';
+import { partPresets } from '../i18n/craftData';
+import { useI18n } from '../i18n/I18nProvider';
+import { nameIssueText, statusLabel } from '../i18n/labels';
 import { href, navigate } from '../router';
 import { useStore } from '../state/store';
 import { useToast } from '../state/toast';
@@ -15,16 +18,10 @@ import { ArchiveIcon, BackIcon, EditIcon, PlusIcon, TrashIcon } from '../ui/icon
 import { MaterialsSection } from '../ui/MaterialsSection';
 import { ConfirmDialog } from '../ui/Sheet';
 
-const PRESETS: Record<Craft, string[]> = {
-  knitting: ['Body', 'Front', 'Back', 'Left sleeve', 'Right sleeve', 'Collar', 'Cuff', 'Heel', 'Toe'],
-  crochet: ['Squares', 'Body', 'Border', 'Sleeve', 'Brim', 'Strap'],
-  sewing: ['Bodice', 'Skirt', 'Sleeves', 'Collar', 'Pockets', 'Lining', 'Hem'],
-  other: ['Part 1', 'Part 2'],
-};
-
 export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
   const { getProject, update, remove } = useStore();
   const toast = useToast();
+  const { t } = useI18n();
   const project = getProject(id);
   const [editingId, setEditingId] = useState<string>();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -40,10 +37,10 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
       <div className="page">
         <EmptyState
           art="search"
-          title="Project not found"
-          action={<a className="btn btn--primary" href={href.overview()}>Back to projects</a>}
+          title={t('common.projectNotFound')}
+          action={<a className="btn btn--primary" href={href.overview()}>{t('common.backToProjects')}</a>}
         >
-          It may have been deleted on this device.
+          {t('project.notFoundBody')}
         </EmptyState>
       </div>
     );
@@ -55,8 +52,8 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
     update(project.id, (p) => setArchived(p, true));
     navigate(href.overview());
     toast({
-      message: `Archived “${project.name}”.`,
-      actionLabel: 'Undo',
+      message: t('project.archived', { name: project.name }),
+      actionLabel: t('common.undo'),
       onAction: () => update(project.id, (p) => setArchived(p, false)),
     });
   };
@@ -71,8 +68,8 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
     if (!removed) return;
     const { component, index } = removed;
     toast({
-      message: `Removed “${component.name}”.`,
-      actionLabel: 'Undo',
+      message: t('project.partRemoved', { name: component.name }),
+      actionLabel: t('common.undo'),
       onAction: () => update(project.id, (p) => restoreComponent(p, component, index)),
     });
   };
@@ -80,7 +77,7 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
   return (
     <div className="page page--project">
       <a className="back-link" href={href.overview()}>
-        <BackIcon size={18} /> All projects
+        <BackIcon size={18} /> {t('common.allProjects')}
       </a>
 
       <section className="phero">
@@ -88,12 +85,12 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
         <div className="phero__body">
           <div className="pcard__tags">
             <CraftTag project={project} />
-            {project.isSample && <span className="badge badge--sample">Sample</span>}
-            {project.archived && <span className="badge badge--archived">Archived</span>}
+            {project.isSample && <span className="badge badge--sample">{t('common.sample')}</span>}
+            {project.archived && <span className="badge badge--archived">{t('common.archived')}</span>}
           </div>
           <h1>{project.name}</h1>
           <div className="phero__row">
-            <label htmlFor="project-status" className="visually-hidden">Project status</label>
+            <label htmlFor="project-status" className="visually-hidden">{t('project.status')}</label>
             <select
               id="project-status"
               className={`status-select status-select--${project.status}`}
@@ -101,25 +98,25 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
               onChange={(e) => update(project.id, (p) => updateProject(p, { status: e.target.value as ProjectStatus }))}
             >
               {PROJECT_STATUSES.map((s) => (
-                <option key={s} value={s}>{PROJECT_STATUS_LABEL[s]}</option>
+                <option key={s} value={s}>{statusLabel(t, s)}</option>
               ))}
             </select>
             <a className="btn btn--soft btn--sm" href={href.edit(project.id)}>
-              <EditIcon size={16} /> Edit details
+              <EditIcon size={16} /> {t('project.editDetails')}
             </a>
           </div>
-          <ProgressBar value={projectProgress(project)} label="Project progress" />
+          <ProgressBar value={projectProgress(project)} label={t('progress.project')} />
         </div>
       </section>
 
       <section className="section" aria-labelledby="parts-heading">
         <div className="section__head">
-          <h2 id="parts-heading">Parts</h2>
-          <span className="muted">{project.components.length || 'None yet'}</span>
+          <h2 id="parts-heading">{t('project.parts')}</h2>
+          <span className="muted">{project.components.length || t('project.noneYet')}</span>
         </div>
         {project.components.length === 0 && (
-          <EmptyState art="parts" title="Break it into parts">
-            A sweater might have a body, two sleeves and a collar. Each part gets its own counters, size and colours.
+          <EmptyState art="parts" title={t('project.emptyTitle')}>
+            {t('project.emptyBody')}
           </EmptyState>
         )}
         <div className="parts">
@@ -142,25 +139,25 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
       {project.notes && (
         <section className="section" aria-labelledby="notes-heading">
           <div className="section__head">
-            <h2 id="notes-heading">Notes</h2>
+            <h2 id="notes-heading">{t('common.notes')}</h2>
           </div>
           <p className="notes">{project.notes}</p>
         </section>
       )}
 
-      <section className="danger-zone" aria-label="Archive or delete">
+      <section className="danger-zone" aria-label={t('project.archiveOrDelete')}>
         {project.archived ? (
           <>
             <button type="button" className="btn btn--soft" onClick={() => update(project.id, (p) => setArchived(p, false))}>
-              <ArchiveIcon size={18} /> Restore from archive
+              <ArchiveIcon size={18} /> {t('project.restore')}
             </button>
             <button type="button" className="btn btn--danger-ghost" onClick={() => setConfirmDelete(true)}>
-              <TrashIcon size={18} /> Delete forever
+              <TrashIcon size={18} /> {t('project.deleteForever')}
             </button>
           </>
         ) : (
           <button type="button" className="btn btn--ghost" onClick={archive}>
-            <ArchiveIcon size={18} /> Archive project
+            <ArchiveIcon size={18} /> {t('project.archive')}
           </button>
         )}
       </section>
@@ -181,15 +178,15 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
 
       {confirmDelete && (
         <ConfirmDialog
-          title="Delete this project forever?"
-          message={`“${project.name}” and all its parts, counts and materials will be permanently deleted. This can't be undone.`}
-          confirmLabel="Delete forever"
+          title={t('project.deleteTitle')}
+          message={t('project.deleteBody', { name: project.name })}
+          confirmLabel={t('project.deleteForever')}
           onCancel={() => setConfirmDelete(false)}
           onConfirm={async () => {
             setConfirmDelete(false);
             navigate(href.overview());
             await remove(project.id);
-            toast({ message: `Deleted “${project.name}”.` });
+            toast({ message: t('project.deleted', { name: project.name }) });
           }}
         />
       )}
@@ -199,14 +196,15 @@ export function ProjectScreen({ id, focus }: { id: string; focus?: string }) {
 
 function AddComponentForm({ project, onAdd }: { project: Project; onAdd(name: string): void }) {
   const uid = useId();
+  const { t, lang } = useI18n();
   const [name, setName] = useState('');
   const [error, setError] = useState<string>();
   const existing = new Set(project.components.map((c) => c.name.toLowerCase()));
-  const suggestions = PRESETS[project.craft].filter((s) => !existing.has(s.toLowerCase())).slice(0, 5);
+  const suggestions = partPresets(project.craft, lang).filter((s) => !existing.has(s.toLowerCase())).slice(0, 5);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const err = validateName(name, LIMITS.componentName, 'Part name');
+    const err = nameIssueText(t, validateName(name, LIMITS.componentName), 'project.partNameRequired', LIMITS.componentName);
     setError(err);
     if (err) return;
     onAdd(name);
@@ -215,13 +213,13 @@ function AddComponentForm({ project, onAdd }: { project: Project; onAdd(name: st
 
   return (
     <form className="add-part" onSubmit={submit} noValidate>
-      <label htmlFor={`${uid}-name`} className="label">Add a part</label>
+      <label htmlFor={`${uid}-name`} className="label">{t('project.addPart')}</label>
       <div className="add-part__row">
         <input
           id={`${uid}-name`}
           value={name}
           maxLength={LIMITS.componentName}
-          placeholder="e.g. Left sleeve"
+          placeholder={t('project.addPartPlaceholder')}
           onChange={(e) => {
             setName(e.target.value);
             if (error) setError(undefined);
@@ -230,12 +228,12 @@ function AddComponentForm({ project, onAdd }: { project: Project; onAdd(name: st
           aria-describedby={error ? `${uid}-err` : undefined}
         />
         <button type="submit" className="btn btn--primary">
-          <PlusIcon size={18} /> Add
+          <PlusIcon size={18} /> {t('common.add')}
         </button>
       </div>
       {error && <p className="field-error" id={`${uid}-err`}>{error}</p>}
       {suggestions.length > 0 && (
-        <div className="chips chips--sm" role="group" aria-label="Quick add">
+        <div className="chips chips--sm" role="group" aria-label={t('project.quickAdd')}>
           {suggestions.map((s) => (
             <button key={s} type="button" className="chip" onClick={() => onAdd(s)}>
               + {s}

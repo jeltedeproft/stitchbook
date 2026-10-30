@@ -61,7 +61,7 @@ describe('managing components', () => {
     const name = dialog.getByLabelText('Name');
     await user.clear(name);
     await user.click(dialog.getByRole('button', { name: 'Save' }));
-    expect(dialog.getByText('Component name is required.')).toBeInTheDocument();
+    expect(dialog.getByText('Part name is required.')).toBeInTheDocument();
 
     await user.type(name, 'Left sleeve');
     await user.type(dialog.getByLabelText('Needle size'), '4.5 mm');

@@ -1,5 +1,8 @@
 import { useId, useState, type FormEvent } from 'react';
-import { COMPONENT_STATUSES, COMPONENT_STATUS_LABEL, toolLabel, toolSizeSuggestions } from '../domain/craft';
+import { COMPONENT_STATUSES } from '../domain/craft';
+import { toolSizeSuggestions } from '../i18n/craftData';
+import { useI18n } from '../i18n/I18nProvider';
+import { componentStatusLabel, nameIssueText, toolLabel } from '../i18n/labels';
 import { newId } from '../domain/ids';
 import type { ColorAssignment, ComponentStatus, CountUnit, Project, ProjectComponent } from '../domain/types';
 import { LIMITS, isHexColor, validateName } from '../domain/validation';
@@ -20,6 +23,7 @@ const CUSTOM = '__custom__';
 
 export function ComponentEditor({ project, component, onSave, onRemove, onClose }: Props) {
   const uid = useId();
+  const { t, lang } = useI18n();
   const [name, setName] = useState(component.name);
   const [status, setStatus] = useState<ComponentStatus>(component.status);
   const [countUnit, setCountUnit] = useState<CountUnit>(component.countUnit);
@@ -41,16 +45,16 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const nameError = validateName(name, LIMITS.componentName, 'Component name');
-    const t = target.trim();
-    const targetError = t && !/^\d+$/.test(t) ? 'Use a whole number, or leave empty.' : undefined;
+    const nameError = nameIssueText(t, validateName(name, LIMITS.componentName), 'project.partNameRequired', LIMITS.componentName);
+    const tgt = target.trim();
+    const targetError = tgt && !/^\d+$/.test(tgt) ? t('editor.targetError') : undefined;
     setErrors({ name: nameError, target: targetError });
     if (nameError || targetError) return;
     onSave({
       name,
       status,
       countUnit,
-      targetRows: t ? Number(t) : undefined,
+      targetRows: tgt ? Number(tgt) : undefined,
       toolSize,
       notes,
       countersEnabled,
@@ -58,31 +62,29 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
     });
   };
 
-  const unitWord = countUnit === 'round' ? 'rounds' : 'rows';
-
 
   return (
     <Sheet
-      title={`Edit ${component.name}`}
+      title={t('editor.title', { name: component.name })}
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn--danger-ghost" onClick={onRemove}>
-            <TrashIcon size={18} /> Remove
+            <TrashIcon size={18} /> {t('common.remove')}
           </button>
           <span className="spacer" />
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="submit" form={`${uid}-form`} className="btn btn--primary">
-            Save
+            {t('common.save')}
           </button>
         </>
       }
     >
       <form id={`${uid}-form`} className="form" onSubmit={submit} noValidate>
         <div className="field">
-          <label htmlFor={`${uid}-name`}>Name</label>
+          <label htmlFor={`${uid}-name`}>{t('common.name')}</label>
           <input
             id={`${uid}-name`}
             value={name}
@@ -96,58 +98,58 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
         </div>
 
         <fieldset className="field">
-          <legend>Status</legend>
+          <legend>{t('common.status')}</legend>
           <div className="segmented">
             {COMPONENT_STATUSES.map((s) => (
               <label key={s} className={status === s ? 'is-on' : ''}>
                 <input type="radio" name={`${uid}-status`} value={s} checked={status === s} onChange={() => setStatus(s)} />
-                {COMPONENT_STATUS_LABEL[s]}
+                {componentStatusLabel(t, s)}
               </label>
             ))}
           </div>
         </fieldset>
 
         <div className="field">
-          <label htmlFor={`${uid}-tool`}>{toolLabel(project.craft)}</label>
+          <label htmlFor={`${uid}-tool`}>{toolLabel(t, project.craft)}</label>
           <input
             id={`${uid}-tool`}
             list={`${uid}-tools`}
             value={toolSize}
             maxLength={LIMITS.toolSize}
-            placeholder="e.g. 4.5 mm"
+            placeholder={t('editor.toolPlaceholder')}
             onChange={(e) => setToolSize(e.target.value)}
           />
           <datalist id={`${uid}-tools`}>
-            {toolSizeSuggestions(project.craft).map((s) => (
+            {toolSizeSuggestions(project.craft, lang).map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>
-          <p className="hint">Pick a common size or type your own. Each part can use its own size.</p>
+          <p className="hint">{t('editor.toolHint')}</p>
         </div>
 
         <fieldset className="field">
-          <legend>Counting</legend>
+          <legend>{t('editor.counting')}</legend>
           <label className="check">
             <input type="checkbox" checked={countersEnabled} onChange={(e) => setCountersEnabled(e.target.checked)} />
-            Track rows/rounds and stitches for this part
+            {t('editor.trackCounters')}
           </label>
           {countersEnabled && (
             <div className="field-row">
-              <div className="segmented" role="radiogroup" aria-label="Count in">
+              <div className="segmented" role="radiogroup" aria-label={t('editor.countIn')}>
                 {(['row', 'round'] as const).map((u) => (
                   <label key={u} className={countUnit === u ? 'is-on' : ''}>
                     <input type="radio" name={`${uid}-unit`} value={u} checked={countUnit === u} onChange={() => setCountUnit(u)} />
-                    {u === 'row' ? 'Rows (flat)' : 'Rounds (in the round)'}
+                    {u === 'row' ? t('editor.rowsFlat') : t('editor.roundsCircular')}
                   </label>
                 ))}
               </div>
               <div className="field field--inline">
-                <label htmlFor={`${uid}-target`}>Target {unitWord} (optional)</label>
+                <label htmlFor={`${uid}-target`}>{countUnit === 'round' ? t('editor.targetRounds') : t('editor.targetRows')}</label>
                 <input
                   id={`${uid}-target`}
                   inputMode="numeric"
                   value={target}
-                  placeholder="e.g. 96"
+                  placeholder={t('editor.targetPlaceholder')}
                   onChange={(e) => setTarget(e.target.value)}
                   aria-invalid={!!errors.target}
                   aria-describedby={errors.target ? `${uid}-target-err` : undefined}
@@ -159,8 +161,8 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
         </fieldset>
 
         <fieldset className="field">
-          <legend>Colours</legend>
-          {colors.length === 0 && <p className="hint">No colours yet. Link a yarn or material from this project.</p>}
+          <legend>{t('editor.colours')}</legend>
+          {colors.length === 0 && <p className="hint">{t('editor.noColours')}</p>}
           <ul className="color-list">
             {colors.map((col, i) => {
               const linked = project.materials.find((m) => m.id === col.materialId);
@@ -169,7 +171,7 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
                 <li key={col.id} className="color-row">
                   <Swatch color={linked?.colorHex ?? col.customHex} />
                   <div className="color-row__fields">
-                    <label className="visually-hidden" htmlFor={`${uid}-col-${i}`}>Colour {i + 1}</label>
+                    <label className="visually-hidden" htmlFor={`${uid}-col-${i}`}>{t('common.colourN', { n: i + 1 })}</label>
                     <select
                       id={`${uid}-col-${i}`}
                       value={col.materialId && linked ? col.materialId : col.materialId ? '' : CUSTOM}
@@ -179,25 +181,25 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
                           : setColor(col.id, { materialId: e.target.value })
                       }
                     >
-                      {col.materialId && !linked && <option value="">Removed material</option>}
+                      {col.materialId && !linked && <option value="">{t('part.removedMaterial')}</option>}
                       {project.materials.map((m) => (
                         <option key={m.id} value={m.id}>
                           {m.colorName ? `${m.colorName} — ${m.name}` : m.name}
                         </option>
                       ))}
-                      <option value={CUSTOM}>Other colour…</option>
+                      <option value={CUSTOM}>{t('editor.otherColour')}</option>
                     </select>
                     {isCustom && (
                       <div className="color-row__custom">
-                        <label className="visually-hidden" htmlFor={`${uid}-colname-${i}`}>Colour name</label>
+                        <label className="visually-hidden" htmlFor={`${uid}-colname-${i}`}>{t('editor.colourName')}</label>
                         <input
                           id={`${uid}-colname-${i}`}
-                          placeholder="Colour name"
+                          placeholder={t('editor.colourName')}
                           value={col.customName ?? ''}
                           maxLength={LIMITS.materialField}
                           onChange={(e) => setColor(col.id, { customName: e.target.value || undefined })}
                         />
-                        <label className="visually-hidden" htmlFor={`${uid}-colhex-${i}`}>Swatch</label>
+                        <label className="visually-hidden" htmlFor={`${uid}-colhex-${i}`}>{t('editor.swatch')}</label>
                         <input
                           id={`${uid}-colhex-${i}`}
                           type="color"
@@ -206,10 +208,10 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
                         />
                       </div>
                     )}
-                    <label className="visually-hidden" htmlFor={`${uid}-colnote-${i}`}>Where is colour {i + 1} used?</label>
+                    <label className="visually-hidden" htmlFor={`${uid}-colnote-${i}`}>{t('editor.colourWhere', { n: i + 1 })}</label>
                     <input
                       id={`${uid}-colnote-${i}`}
-                      placeholder="Where it's used, e.g. stripes every 4 rows"
+                      placeholder={t('editor.colourWherePlaceholder')}
                       value={col.note ?? ''}
                       maxLength={LIMITS.colorNote}
                       onChange={(e) => setColor(col.id, { note: e.target.value })}
@@ -218,7 +220,7 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
                   <button
                     type="button"
                     className="icon-btn"
-                    aria-label={`Remove colour ${i + 1}`}
+                    aria-label={t('editor.removeColour', { n: i + 1 })}
                     onClick={() => setColors((list) => list.filter((c) => c.id !== col.id))}
                   >
                     <TrashIcon size={18} />
@@ -228,18 +230,18 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
             })}
           </ul>
           <button type="button" className="btn btn--soft btn--sm" onClick={addColor}>
-            <PlusIcon size={16} /> Add colour
+            <PlusIcon size={16} /> {t('editor.addColour')}
           </button>
         </fieldset>
 
         <div className="field">
-          <label htmlFor={`${uid}-notes`}>Notes</label>
+          <label htmlFor={`${uid}-notes`}>{t('common.notes')}</label>
           <textarea
             id={`${uid}-notes`}
             rows={3}
             value={notes}
             maxLength={LIMITS.componentNotes}
-            placeholder="Instructions or reminders, e.g. decrease every 8th round"
+            placeholder={t('editor.notesPlaceholder')}
             onChange={(e) => setNotes(e.target.value)}
           />
         </div>

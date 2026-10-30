@@ -20,7 +20,13 @@ export interface ImportResult {
   skipped: number;
 }
 
-export class BackupFormatError extends Error {}
+export type BackupIssue = 'notJson' | 'notBackup' | 'wrongVersion';
+
+export class BackupFormatError extends Error {
+  constructor(readonly code: BackupIssue) {
+    super(`Invalid backup: ${code}`);
+  }
+}
 
 export function createBackup(projects: Project[], exportedAt = Date.now()): BackupFile {
   return { app: BACKUP_APP, version: BACKUP_VERSION, exportedAt, projects };
@@ -37,14 +43,14 @@ export function importBackup(json: string, current: Project[]): ImportResult {
   try {
     data = JSON.parse(json);
   } catch {
-    throw new BackupFormatError('This file is not a valid backup (it is not JSON).');
+    throw new BackupFormatError('notJson');
   }
   const file = data as Partial<BackupFile> | null;
   if (!file || file.app !== BACKUP_APP || !Array.isArray(file.projects)) {
-    throw new BackupFormatError('This file is not a Knit backup.');
+    throw new BackupFormatError('notBackup');
   }
   if (file.version !== BACKUP_VERSION) {
-    throw new BackupFormatError('This backup was made by a different version of the app.');
+    throw new BackupFormatError('wrongVersion');
   }
 
   const byId = new Map(current.map((p) => [p.id, p]));

@@ -1,8 +1,9 @@
 import { changeCount, resetCount, setCount } from '../domain/counters';
 import { moveComponent, updateComponent } from '../domain/components';
-import { toolLabel, unitLabel } from '../domain/craft';
 import { componentProgress } from '../domain/progress';
 import type { CounterField, Project, ProjectComponent } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
+import { toolLabel, unitLabel } from '../i18n/labels';
 import { useStore } from '../state/store';
 import { useToast } from '../state/toast';
 import { ComponentStatusBadge, Swatch } from './bits';
@@ -20,16 +21,18 @@ interface Props {
 export function ComponentCard({ project, component: c, index, highlighted, onEdit }: Props) {
   const { update } = useStore();
   const toast = useToast();
+  const { t, tp } = useI18n();
   const total = project.components.length;
-  const unit = unitLabel(c.countUnit, true);
+  const unit = unitLabel(t, c.countUnit, true);
+  const stitchesLabel = t('unit.stitches');
   const progress = componentProgress(c);
 
   const reset = (field: CounterField, label: string) => {
     const previous = c[field];
     update(project.id, (p) => resetCount(p, c.id, field));
     toast({
-      message: `${c.name}: ${label.toLowerCase()} reset to 0.`,
-      actionLabel: 'Undo',
+      message: t('counter.resetDone', { name: c.name, lower: label.toLowerCase() }),
+      actionLabel: t('common.undo'),
       onAction: () => update(project.id, (p) => setCount(p, c.id, field, previous)),
     });
   };
@@ -50,7 +53,7 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
           type="button"
           className={`part__check ${c.status === 'complete' ? 'is-on' : ''}`}
           aria-pressed={c.status === 'complete'}
-          aria-label={`Mark ${c.name} complete`}
+          aria-label={t('part.markComplete', { name: c.name })}
           onClick={toggleComplete}
         >
           <CheckIcon size={18} strokeWidth={2.4} />
@@ -59,14 +62,14 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
           <h3 id={`component-${c.id}-name`}>{c.name}</h3>
           <div className="part__meta">
             <ComponentStatusBadge status={c.status} />
-            {highlighted && <span className="badge badge--recent">Last worked on</span>}
+            {highlighted && <span className="badge badge--recent">{t('part.lastWorked')}</span>}
           </div>
         </div>
         <div className="part__tools">
           <button
             type="button"
             className="icon-btn"
-            aria-label={`Move ${c.name} up`}
+            aria-label={t('part.moveUp', { name: c.name })}
             disabled={index === 0}
             onClick={() => update(project.id, (p) => moveComponent(p, c.id, -1))}
           >
@@ -75,13 +78,13 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
           <button
             type="button"
             className="icon-btn"
-            aria-label={`Move ${c.name} down`}
+            aria-label={t('part.moveDown', { name: c.name })}
             disabled={index === total - 1}
             onClick={() => update(project.id, (p) => moveComponent(p, c.id, 1))}
           >
             <DownIcon />
           </button>
-          <button type="button" className="icon-btn" aria-label={`Edit ${c.name}`} onClick={onEdit}>
+          <button type="button" className="icon-btn" aria-label={t('common.edit', { name: c.name })} onClick={onEdit}>
             <EditIcon />
           </button>
         </div>
@@ -91,13 +94,13 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
         <dl className="part__facts">
           {c.toolSize && (
             <div>
-              <dt>{toolLabel(project.craft)}</dt>
+              <dt>{toolLabel(t, project.craft)}</dt>
               <dd>{c.toolSize}</dd>
             </div>
           )}
           {c.colors.length > 0 && (
             <div className="part__colors">
-              <dt>Colour{c.colors.length > 1 ? 's' : ''}</dt>
+              <dt>{tp('part.colours', c.colors.length)}</dt>
               <dd>
                 <ul>
                   {c.colors.map((col) => {
@@ -105,8 +108,8 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
                     const name = m
                       ? m.colorName || m.name
                       : col.materialId
-                        ? 'Removed material'
-                        : col.customName || 'Colour';
+                        ? t('part.removedMaterial')
+                        : col.customName || t('part.colourFallback');
                     return (
                       <li key={col.id}>
                         <Swatch color={m?.colorHex ?? col.customHex} />
@@ -138,11 +141,11 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
               onReset={() => reset('rows', unit)}
             />
             <Counter
-              label="Stitches"
+              label={stitchesLabel}
               value={c.stitches}
               onChange={(d) => update(project.id, (p) => changeCount(p, c.id, 'stitches', d))}
               onSet={(v) => update(project.id, (p) => setCount(p, c.id, 'stitches', v))}
-              onReset={() => reset('stitches', 'Stitches')}
+              onReset={() => reset('stitches', stitchesLabel)}
             />
           </div>
           {c.targetRows ? (
@@ -157,7 +160,7 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
           className="link-btn part__enable"
           onClick={() => update(project.id, (p) => updateComponent(p, c.id, { countersEnabled: true }))}
         >
-          + Track rows and stitches
+          {t('part.enableCounters')}
         </button>
       )}
     </article>
