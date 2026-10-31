@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
 import { ImageIcon, TrashIcon } from './icons';
 
@@ -39,7 +39,7 @@ export async function fileToPhoto(file: File): Promise<string> {
 }
 
 export function PhotoPicker({ value, onChange }: { value?: string; onChange(photo: string | undefined): void }) {
-  const id = useId();
+  const input = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -50,12 +50,13 @@ export function PhotoPicker({ value, onChange }: { value?: string; onChange(phot
       <div className="photo-picker">
         {value ? <img src={value} alt={t('photo.current')} /> : <div className="photo-picker__empty"><ImageIcon size={28} /></div>}
         <div className="photo-picker__actions">
-          <label htmlFor={id} className="btn btn--soft btn--sm file-btn">
+          <button type="button" className="btn btn--soft btn--sm" disabled={busy} onClick={() => input.current?.click()}>
             {busy ? t('photo.processing') : value ? t('photo.change') : t('photo.add')}
-          </label>
+          </button>
+          {/* Never shown: some phone browsers draw their own "Choose file" button for any visible file input. */}
           <input
-            id={id}
-            className="visually-hidden"
+            ref={input}
+            hidden
             type="file"
             accept="image/*"
             onChange={async (e) => {

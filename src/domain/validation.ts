@@ -1,4 +1,4 @@
-import { CRAFTS, COMPONENT_STATUSES, PROJECT_STATUSES, SWATCHES, countersByDefault } from './craft';
+import { CRAFTS, COMPONENT_STATUSES, PROJECT_STATUSES, SWATCHES } from './craft';
 import { newId } from './ids';
 import type {
   ColorAssignment,
@@ -107,7 +107,7 @@ function normalizeRowNotes(raw: unknown): RowNote[] | undefined {
   return [...byRow].sort((a, b) => a[0] - b[0]).map(([row, text]) => ({ row, text }));
 }
 
-function normalizeComponent(raw: unknown, countersDefault: boolean): ProjectComponent | undefined {
+function normalizeComponent(raw: unknown): ProjectComponent | undefined {
   const c = obj(raw);
   const name = str(c.name, LIMITS.componentName);
   if (!name) return undefined;
@@ -118,13 +118,13 @@ function normalizeComponent(raw: unknown, countersDefault: boolean): ProjectComp
     status: pick(c.status, COMPONENT_STATUSES, 'not_started'),
     countUnit: pick<CountUnit>(c.countUnit, ['row', 'round'], 'row'),
     rows: clampCount(Number(c.rows ?? 0)),
+    pairRows: typeof c.pairRows === 'number' ? clampCount(c.pairRows) : undefined,
     targetRows: target > 0 ? target : undefined,
     stitches: clampCount(Number(c.stitches ?? 0)),
     toolSize: str(c.toolSize, LIMITS.toolSize),
     colors: Array.isArray(c.colors) ? c.colors.map(normalizeColor) : [],
     notes: str(c.notes, LIMITS.componentNotes),
     rowNotes: normalizeRowNotes(c.rowNotes),
-    countersEnabled: typeof c.countersEnabled === 'boolean' ? c.countersEnabled : countersDefault,
   };
 }
 
@@ -138,10 +138,9 @@ export function normalizeProject(raw: unknown): Project | undefined {
   const name = str(p.name, LIMITS.projectName);
   if (!id || !name) return undefined;
   const craft = pick(p.craft, CRAFTS, 'other');
-  const counters = countersByDefault(craft);
   const created = typeof p.createdAt === 'number' ? p.createdAt : Date.now();
   const components = Array.isArray(p.components)
-    ? p.components.map((c) => normalizeComponent(c, counters)).filter((c): c is ProjectComponent => !!c)
+    ? p.components.map((c) => normalizeComponent(c)).filter((c): c is ProjectComponent => !!c)
     : [];
   const photo = typeof p.photo === 'string' && p.photo.startsWith('data:image/') ? p.photo : undefined;
   const lastComponentId = str(p.lastComponentId, 100);

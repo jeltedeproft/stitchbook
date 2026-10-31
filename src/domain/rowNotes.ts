@@ -7,18 +7,32 @@ export function workingRow(c: ProjectComponent): number {
   return Math.min(MAX_COUNT, c.rows + 1);
 }
 
-/** True once a target is set and reached. */
+/** Rows finished on each piece: one count, or two when a pair is worked at once. */
+export function pieceRows(c: ProjectComponent): number[] {
+  return c.pairRows === undefined ? [c.rows] : [c.rows, c.pairRows];
+}
+
+function pieceDone(c: ProjectComponent, rows: number): boolean {
+  return !!c.targetRows && rows >= c.targetRows;
+}
+
+/** True once a target is set and reached (on both pieces of a pair). */
 export function isFinished(c: ProjectComponent): boolean {
-  return !!c.targetRows && c.rows >= c.targetRows;
+  return pieceRows(c).every((n) => pieceDone(c, n));
+}
+
+/** The highest row in play: the furthest working row of any unfinished piece. */
+export function topRow(c: ProjectComponent): number {
+  return Math.max(...pieceRows(c).map((n) => (pieceDone(c, n) ? n : Math.min(MAX_COUNT, n + 1))));
 }
 
 export function rowNote(c: ProjectComponent, row: number): string | undefined {
   return c.rowNotes?.find((n) => n.row === row)?.text;
 }
 
-/** Notes on rows after the working row, nearest first. */
+/** Notes on rows after the highest working row, nearest first. */
 export function upcomingNotes(c: ProjectComponent, limit = 2): RowNote[] {
-  const from = workingRow(c);
+  const from = topRow(c);
   return (c.rowNotes ?? []).filter((n) => n.row > from).slice(0, limit);
 }
 

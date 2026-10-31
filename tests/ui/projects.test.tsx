@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { addMaterial } from '../../src/domain/materials';
+import { SWATCHES } from '../../src/domain/craft';
 import { MemoryProjectRepository } from '../../src/storage/memoryRepository';
 import type { ProjectRepository } from '../../src/storage/repository';
 import { makeProject, renderApp, seededRepo } from '../helpers';
@@ -20,10 +20,7 @@ describe('project overview', () => {
     renderApp(new MemoryProjectRepository());
     expect(await screen.findByRole('heading', { name: 'Harvest sweater', level: 3 })).toBeInTheDocument();
     expect(screen.getAllByText('Sample')).toHaveLength(3);
-    expect(screen.getByRole('link', { name: /Pick up where you left off/ })).toHaveAttribute(
-      'href',
-      '#/project/sample-harvest-sweater?c=sample-hs-left-sleeve',
-    );
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
   });
 
   it('shows a welcoming empty state when there are no projects', async () => {
@@ -42,31 +39,32 @@ describe('project overview', () => {
 
     await user.type(screen.getByLabelText('Project name'), 'Autumn socks');
     await user.click(screen.getByLabelText('Crochet'));
+    expect(screen.queryByText(/Shown on the card/)).not.toBeInTheDocument();
+    await user.click(within(screen.getByRole('radiogroup', { name: 'Colour tag' })).getByRole('radio', { name: 'Colour 3' }));
+    // One way to add a photo: the button opens the hidden file input.
+    const fileInput = document.querySelector<HTMLInputElement>('input[type=file]')!;
+    expect(fileInput.hidden).toBe(true);
+    let opened = false;
+    fileInput.addEventListener('click', (e) => { opened = true; e.preventDefault(); });
+    await user.click(screen.getByRole('button', { name: 'Add photo' }));
+    expect(opened).toBe(true);
     await user.click(screen.getByRole('button', { name: 'Create project' }));
 
     expect(await screen.findByRole('heading', { name: 'Autumn socks', level: 1 })).toBeInTheDocument();
     expect(screen.getByLabelText('Project status')).toHaveValue('planned');
     await waitFor(async () => {
-      expect(await repo.loadAll()).toEqual([expect.objectContaining({ name: 'Autumn socks', craft: 'crochet' })]);
+      const [saved] = await repo.loadAll();
+      expect(saved).toMatchObject({ name: 'Autumn socks', craft: 'crochet' });
+      expect(saved.swatch).toBe(SWATCHES[2]);
     });
   });
 
-  it('searches and filters', async () => {
-    const user = userEvent.setup();
-    const sweater = addMaterial(makeProject('Harvest sweater'), { name: 'Highland', fiber: 'Merino' });
-    const socks = { ...makeProject('Autumn socks'), status: 'in_progress' as const };
-    renderApp(await seededRepo([sweater, socks]));
-
-    await user.type(await screen.findByLabelText('Search projects'), 'merino');
-    expect(cardTitles()).toEqual(['Harvest sweater']);
-
-    await user.type(screen.getByLabelText('Search projects'), 'zzz');
-    expect(screen.getByText('No projects match')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
-    expect(cardTitles()).toHaveLength(2);
-
-    await user.click(screen.getByRole('button', { name: 'In progress' }));
-    expect(cardTitles()).toEqual(['Autumn socks']);
+  it('lists the most recently worked project first', async () => {
+    const older = { ...makeProject('Harvest sweater'), updatedAt: 10 };
+    const newer = { ...makeProject('Autumn socks'), updatedAt: 20 };
+    renderApp(await seededRepo([older, newer]));
+    await screen.findByRole('heading', { name: 'Autumn socks', level: 3 });
+    expect(cardTitles()).toEqual(['Autumn socks', 'Harvest sweater']);
   });
 
   it('archives with undo, restores, and deletes only after confirmation', async () => {
@@ -82,10 +80,10 @@ describe('project overview', () => {
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(cardTitles()).toContain('Old scarf');
 
-    // Archive again and find it under the Archived filter.
+    // Archive again and find it under Archived projects.
     await user.click(screen.getByRole('link', { name: /Old scarf/ }));
     await user.click(await screen.findByRole('button', { name: 'Archive project' }));
-    await user.click(await screen.findByRole('button', { name: /^Archived/ }));
+    await user.click(await screen.findByRole('button', { name: 'Archived projects (1)' }));
     expect(cardTitles()).toEqual(['Old scarf']);
 
     await user.click(screen.getByRole('link', { name: /Old scarf/ }));

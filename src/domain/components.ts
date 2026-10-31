@@ -1,4 +1,3 @@
-import { countersByDefault } from './craft';
 import { newId, now } from './ids';
 import type { ColorAssignment, Project, ProjectComponent } from './types';
 import { LIMITS, clampCount, validateName } from './validation';
@@ -23,7 +22,6 @@ export function addComponent(project: Project, name: string): Project {
     rows: 0,
     stitches: 0,
     colors: [],
-    countersEnabled: countersByDefault(project.craft),
   };
   return touch(project, [...project.components, component]);
 }
@@ -38,6 +36,7 @@ export function updateComponent(project: Project, id: string, patch: ComponentPa
     const next: ProjectComponent = { ...c, ...patch };
     if (patch.name !== undefined) next.name = patch.name.trim();
     if (patch.rows !== undefined) next.rows = clampCount(patch.rows);
+    if ('pairRows' in patch) next.pairRows = patch.pairRows === undefined ? undefined : clampCount(patch.pairRows);
     if (patch.stitches !== undefined) next.stitches = clampCount(patch.stitches);
     if ('targetRows' in patch) {
       const t = patch.targetRows === undefined ? 0 : clampCount(patch.targetRows);

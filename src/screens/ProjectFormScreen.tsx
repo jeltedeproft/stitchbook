@@ -71,7 +71,6 @@ export function ProjectFormScreen({ id }: { id?: string }) {
             id="project-name"
             value={name}
             maxLength={LIMITS.projectName}
-            placeholder={t('form.namePlaceholder')}
             autoFocus={!existing}
             onChange={(e) => {
               setName(e.target.value);
@@ -94,7 +93,6 @@ export function ProjectFormScreen({ id }: { id?: string }) {
               </label>
             ))}
           </div>
-          {craft === 'sewing' && <p className="hint">{t('form.sewingHint')}</p>}
         </fieldset>
 
         <div className="field">
@@ -106,18 +104,21 @@ export function ProjectFormScreen({ id }: { id?: string }) {
           </select>
         </div>
 
-        <fieldset className="field">
-          <legend>{t('form.colourTag')}</legend>
-          <p className="hint">{t('form.colourTagHint')}</p>
-          <div className="swatch-picker">
-            {SWATCHES.map((s, i) => (
-              <label key={s} className={`swatch-option ${swatch === s ? 'is-on' : ''}`} style={{ backgroundColor: s }}>
-                <input type="radio" name="swatch" value={s} checked={swatch === s} onChange={() => setSwatch(s)} />
-                <span className="visually-hidden">{t('common.colourN', { n: i + 1 })}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        {/* The colours speak for themselves; the names are only for screen readers. */}
+        <div className="swatch-picker" role="radiogroup" aria-label={t('form.colourTag')}>
+          {SWATCHES.map((s, i) => (
+            <label key={s} className={`swatch-option ${swatch === s ? 'is-on' : ''}`} style={{ backgroundColor: s }}>
+              <input
+                type="radio"
+                name="swatch"
+                value={s}
+                checked={swatch === s}
+                aria-label={t('common.colourN', { n: i + 1 })}
+                onChange={() => setSwatch(s)}
+              />
+            </label>
+          ))}
+        </div>
 
         <PhotoPicker value={photo} onChange={setPhoto} />
 
@@ -128,7 +129,6 @@ export function ProjectFormScreen({ id }: { id?: string }) {
             rows={4}
             value={notes}
             maxLength={LIMITS.projectNotes}
-            placeholder={t('form.notesPlaceholder')}
             onChange={(e) => setNotes(e.target.value)}
           />
         </div>

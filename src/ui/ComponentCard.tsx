@@ -2,6 +2,7 @@ import { changeCount, resetCount, setCount } from '../domain/counters';
 import { moveComponent, updateComponent } from '../domain/components';
 import { componentProgress } from '../domain/progress';
 import type { CounterField, Project, ProjectComponent } from '../domain/types';
+import { formatToolSize } from '../i18n/craftData';
 import { useI18n } from '../i18n/I18nProvider';
 import { toolLabel, unitLabel } from '../i18n/labels';
 import { useStore } from '../state/store';
@@ -22,14 +23,14 @@ interface Props {
 export function ComponentCard({ project, component: c, index, highlighted, onEdit }: Props) {
   const { update } = useStore();
   const toast = useToast();
-  const { t, tp } = useI18n();
+  const { t, tp, lang, sizes } = useI18n();
   const total = project.components.length;
   const unit = unitLabel(t, c.countUnit, true);
   const stitchesLabel = t('unit.stitches');
   const progress = componentProgress(c);
 
   const reset = (field: CounterField, label: string) => {
-    const previous = c[field];
+    const previous = c[field] ?? 0;
     update(project.id, (p) => resetCount(p, c.id, field));
     toast({
       message: t('counter.resetDone', { name: c.name, lower: label.toLowerCase() }),
@@ -96,7 +97,7 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
           {c.toolSize && (
             <div>
               <dt>{toolLabel(t, project.craft)}</dt>
-              <dd>{c.toolSize}</dd>
+              <dd>{formatToolSize(c.toolSize, project.craft, lang, sizes)}</dd>
             </div>
           )}
           {c.colors.length > 0 && (
@@ -130,41 +131,38 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
 
       {c.notes && <p className="part__notes">{c.notes}</p>}
 
-      {c.countersEnabled ? (
-        <>
-          <div className="part__counters">
+      <div className={`part__counters ${c.pairRows !== undefined ? 'part__counters--pair' : ''}`}>
+        {(c.pairRows === undefined ? (['rows'] as const) : (['rows', 'pairRows'] as const)).map((field) => {
+          const label =
+            c.pairRows === undefined
+              ? unit
+              : t('pair.counter', { units: unit.toLowerCase(), side: t(field === 'rows' ? 'pair.left' : 'pair.right') });
+          return (
             <Counter
-              label={unit}
-              value={c.rows}
+              key={field}
+              label={label}
+              value={c[field] ?? 0}
               target={c.targetRows}
-              onChange={(d) => update(project.id, (p) => changeCount(p, c.id, 'rows', d))}
-              onSet={(v) => update(project.id, (p) => setCount(p, c.id, 'rows', v))}
-              onReset={() => reset('rows', unit)}
+              onChange={(d) => update(project.id, (p) => changeCount(p, c.id, field, d))}
+              onSet={(v) => update(project.id, (p) => setCount(p, c.id, field, v))}
+              onReset={() => reset(field, label)}
             />
-            <Counter
-              label={stitchesLabel}
-              value={c.stitches}
-              onChange={(d) => update(project.id, (p) => changeCount(p, c.id, 'stitches', d))}
-              onSet={(v) => update(project.id, (p) => setCount(p, c.id, 'stitches', v))}
-              onReset={() => reset('stitches', stitchesLabel)}
-            />
-          </div>
-          {c.targetRows ? (
-            <div className="part__progress" aria-hidden="true">
-              <div style={{ width: `${Math.round(progress * 100)}%` }} />
-            </div>
-          ) : null}
-          <RowLog project={project} component={c} />
-        </>
-      ) : (
-        <button
-          type="button"
-          className="link-btn part__enable"
-          onClick={() => update(project.id, (p) => updateComponent(p, c.id, { countersEnabled: true }))}
-        >
-          {t('part.enableCounters')}
-        </button>
-      )}
+          );
+        })}
+        <Counter
+          label={stitchesLabel}
+          value={c.stitches}
+          onChange={(d) => update(project.id, (p) => changeCount(p, c.id, 'stitches', d))}
+          onSet={(v) => update(project.id, (p) => setCount(p, c.id, 'stitches', v))}
+          onReset={() => reset('stitches', stitchesLabel)}
+        />
+      </div>
+      {c.targetRows ? (
+        <div className="part__progress" aria-hidden="true">
+          <div style={{ width: `${Math.round(progress * 100)}%` }} />
+        </div>
+      ) : null}
+      <RowLog project={project} component={c} />
     </article>
   );
 }

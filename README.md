@@ -73,7 +73,7 @@ app's data after a week without visits. Each phone keeps its own projects; share
 ## Code map
 
 ```text
-src/domain/    pure logic: types, counters, row notes, components, materials, validation, search, progress
+src/domain/    pure logic: types, counters, row notes, components, materials, validation, progress
 src/storage/   ProjectRepository, IndexedDB + memory implementations, backup import/export
 src/state/     store (load, persist, errors), first-launch seeding, toasts with undo
 src/ui/        Counter, ComponentCard, RowNotes, ComponentEditor, MaterialsSection, Sheet, …

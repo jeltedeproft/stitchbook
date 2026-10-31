@@ -26,7 +26,6 @@ function Svg({ size = 20, children, ...rest }: IconProps) {
 export const PlusIcon = (p: IconProps) => <Svg {...p}><path d="M12 5v14M5 12h14" /></Svg>;
 export const MinusIcon = (p: IconProps) => <Svg {...p}><path d="M5 12h14" /></Svg>;
 export const BackIcon = (p: IconProps) => <Svg {...p}><path d="M15 18l-6-6 6-6" /></Svg>;
-export const SearchIcon = (p: IconProps) => <Svg {...p}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></Svg>;
 export const EditIcon = (p: IconProps) => <Svg {...p}><path d="M4 20h4L19 9l-4-4L4 16v4z" /><path d="M13.5 6.5l4 4" /></Svg>;
 export const UpIcon = (p: IconProps) => <Svg {...p}><path d="M6 15l6-6 6 6" /></Svg>;
 export const DownIcon = (p: IconProps) => <Svg {...p}><path d="M6 9l6 6 6-6" /></Svg>;
@@ -39,7 +38,6 @@ export const ResetIcon = (p: IconProps) => <Svg {...p}><path d="M4 4v6h6" /><pat
 export const DownloadIcon = (p: IconProps) => <Svg {...p}><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></Svg>;
 export const UploadIcon = (p: IconProps) => <Svg {...p}><path d="M12 20V9M7 14l5-5 5 5M5 4h14" /></Svg>;
 export const ImageIcon = (p: IconProps) => <Svg {...p}><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="M21 17l-5-5-9 8" /></Svg>;
-export const PlayIcon = (p: IconProps) => <Svg {...p}><path d="M8 5l11 7-11 7V5z" /></Svg>;
 export const NoteIcon = (p: IconProps) => <Svg {...p}><path d="M5 4h14v12l-4 4H5z" /><path d="M15 20v-4h4M8 9h8M8 13h5" /></Svg>;
 
 export const KnittingIcon = (p: IconProps) => (

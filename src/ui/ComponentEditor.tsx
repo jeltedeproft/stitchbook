@@ -1,8 +1,8 @@
 import { useId, useState, type FormEvent } from 'react';
 import { COMPONENT_STATUSES } from '../domain/craft';
-import { toolSizeSuggestions } from '../i18n/craftData';
+import { canonicalToolSize, formatToolSize, toolSizeOptions } from '../i18n/craftData';
 import { useI18n } from '../i18n/I18nProvider';
-import { componentStatusLabel, nameIssueText, toolLabel } from '../i18n/labels';
+import { componentStatusLabel, nameIssueText, toolLabel, unitLabel } from '../i18n/labels';
 import { newId } from '../domain/ids';
 import type { ColorAssignment, ComponentStatus, CountUnit, Project, ProjectComponent } from '../domain/types';
 import { LIMITS, isHexColor, validateName } from '../domain/validation';
@@ -23,14 +23,15 @@ const CUSTOM = '__custom__';
 
 export function ComponentEditor({ project, component, onSave, onRemove, onClose }: Props) {
   const uid = useId();
-  const { t, lang } = useI18n();
+  const { t, lang, sizes } = useI18n();
   const [name, setName] = useState(component.name);
   const [status, setStatus] = useState<ComponentStatus>(component.status);
   const [countUnit, setCountUnit] = useState<CountUnit>(component.countUnit);
   const [target, setTarget] = useState(component.targetRows ? String(component.targetRows) : '');
-  const [toolSize, setToolSize] = useState(component.toolSize ?? '');
+  const [toolSize, setToolSize] = useState(() => canonicalToolSize(component.toolSize ?? '', project.craft));
+  const toolOptions = toolSizeOptions(project.craft, lang, sizes);
   const [notes, setNotes] = useState(component.notes ?? '');
-  const [countersEnabled, setCountersEnabled] = useState(component.countersEnabled);
+  const [paired, setPaired] = useState(component.pairRows !== undefined);
   const [colors, setColors] = useState<ColorAssignment[]>(component.colors);
   const [errors, setErrors] = useState<{ name?: string; target?: string }>({});
 
@@ -57,7 +58,8 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
       targetRows: tgt ? Number(tgt) : undefined,
       toolSize,
       notes,
-      countersEnabled,
+      // A new pair starts level with the first piece, the usual way to cast on two at once.
+      pairRows: paired ? (component.pairRows ?? component.rows) : undefined,
       colors: colors.map((c) => ({ ...c, note: c.note?.trim() || undefined })),
     });
   };
@@ -111,54 +113,45 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
 
         <div className="field">
           <label htmlFor={`${uid}-tool`}>{toolLabel(t, project.craft)}</label>
-          <input
-            id={`${uid}-tool`}
-            list={`${uid}-tools`}
-            value={toolSize}
-            maxLength={LIMITS.toolSize}
-            placeholder={t('editor.toolPlaceholder')}
-            onChange={(e) => setToolSize(e.target.value)}
-          />
-          <datalist id={`${uid}-tools`}>
-            {toolSizeSuggestions(project.craft, lang).map((s) => (
-              <option key={s} value={s} />
+          <select id={`${uid}-tool`} value={toolSize} onChange={(e) => setToolSize(e.target.value)}>
+            <option value="">{t('editor.noSize')}</option>
+            {/* keep a size typed in an older version, or one outside the list */}
+            {toolSize && !toolOptions.some((o) => o.value === toolSize) && (
+              <option value={toolSize}>{formatToolSize(toolSize, project.craft, lang, sizes)}</option>
+            )}
+            {toolOptions.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
-          </datalist>
-          <p className="hint">{t('editor.toolHint')}</p>
+          </select>
         </div>
 
         <fieldset className="field">
-          <legend>{t('editor.counting')}</legend>
-          <label className="check">
-            <input type="checkbox" checked={countersEnabled} onChange={(e) => setCountersEnabled(e.target.checked)} />
-            {t('editor.trackCounters')}
-          </label>
-          {countersEnabled && (
-            <div className="field-row">
-              <div className="segmented" role="radiogroup" aria-label={t('editor.countIn')}>
-                {(['row', 'round'] as const).map((u) => (
-                  <label key={u} className={countUnit === u ? 'is-on' : ''}>
-                    <input type="radio" name={`${uid}-unit`} value={u} checked={countUnit === u} onChange={() => setCountUnit(u)} />
-                    {u === 'row' ? t('editor.rowsFlat') : t('editor.roundsCircular')}
-                  </label>
-                ))}
-              </div>
-              <div className="field field--inline">
-                <label htmlFor={`${uid}-target`}>{countUnit === 'round' ? t('editor.targetRounds') : t('editor.targetRows')}</label>
-                <input
-                  id={`${uid}-target`}
-                  inputMode="numeric"
-                  value={target}
-                  placeholder={t('editor.targetPlaceholder')}
-                  onChange={(e) => setTarget(e.target.value)}
-                  aria-invalid={!!errors.target}
-                  aria-describedby={errors.target ? `${uid}-target-err` : undefined}
-                />
-                {errors.target && <p className="field-error" id={`${uid}-target-err`}>{errors.target}</p>}
-              </div>
-            </div>
-          )}
+          <legend>{t('editor.countIn')}</legend>
+          {(['row', 'round'] as const).map((u) => (
+            <label key={u} className="check">
+              <input type="radio" name={`${uid}-unit`} value={u} checked={countUnit === u} onChange={() => setCountUnit(u)} />
+              {unitLabel(t, u, true)}
+            </label>
+          ))}
         </fieldset>
+
+        <div className="field">
+          <label htmlFor={`${uid}-target`}>{countUnit === 'round' ? t('editor.targetRounds') : t('editor.targetRows')}</label>
+          <input
+            id={`${uid}-target`}
+            inputMode="numeric"
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
+            aria-invalid={!!errors.target}
+            aria-describedby={errors.target ? `${uid}-target-err` : undefined}
+          />
+          {errors.target && <p className="field-error" id={`${uid}-target-err`}>{errors.target}</p>}
+        </div>
+
+        <label className="check">
+          <input type="checkbox" checked={paired} onChange={(e) => setPaired(e.target.checked)} />
+          {t('editor.pair')}
+        </label>
 
         <fieldset className="field">
           <legend>{t('editor.colours')}</legend>
@@ -241,7 +234,6 @@ export function ComponentEditor({ project, component, onSave, onRemove, onClose 
             rows={3}
             value={notes}
             maxLength={LIMITS.componentNotes}
-            placeholder={t('editor.notesPlaceholder')}
             onChange={(e) => setNotes(e.target.value)}
           />
         </div>

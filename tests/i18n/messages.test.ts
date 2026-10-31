@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { sampleProjects } from '../../src/domain/sampleData';
-import { toolSizeSuggestions, partPresets } from '../../src/i18n/craftData';
+import { canonicalToolSize, formatToolSize, partPresets, toolSizeOptions } from '../../src/i18n/craftData';
 import { translate, translatePlural } from '../../src/i18n/I18nProvider';
 import { detectLang, pluralCategory, rememberLang } from '../../src/i18n/lang';
 import { en, fr, type MessageKey } from '../../src/i18n/messages';
@@ -60,10 +60,10 @@ describe('translate', () => {
     expect(pluralCategory('fr', 0)).toBe('one');
     expect(pluralCategory('fr', 1)).toBe('one');
     expect(pluralCategory('fr', 2)).toBe('other');
-    expect(translatePlural('en', 'overview.active', 1)).toBe('1 project on the go');
-    expect(translatePlural('en', 'overview.active', 3)).toBe('3 projects on the go');
-    expect(translatePlural('fr', 'overview.active', 1)).toBe('1 projet en route');
-    expect(translatePlural('fr', 'overview.active', 3)).toBe('3 projets en route');
+    expect(translatePlural('en', 'part.colours', 1)).toBe('Colour');
+    expect(translatePlural('en', 'part.colours', 3)).toBe('Colours');
+    expect(translatePlural('fr', 'part.colours', 1)).toBe('Couleur');
+    expect(translatePlural('fr', 'part.colours', 3)).toBe('Couleurs');
   });
 
   it('agrees part progress with the right number in each language', () => {
@@ -102,9 +102,20 @@ describe('language detection', () => {
 });
 
 describe('localised craft data', () => {
-  it('uses metric sizes with a decimal comma in French', () => {
-    expect(toolSizeSuggestions('knitting', 'fr')).toContain('4,5 mm');
-    expect(toolSizeSuggestions('knitting', 'en')).toContain('4.5 mm (US 7)');
+  it('shows sizes in metric or US, with a decimal comma in French', () => {
+    const labels = (lang: 'en' | 'fr', system: 'metric' | 'us', craft: 'knitting' | 'crochet' = 'knitting') =>
+      toolSizeOptions(craft, lang, system).map((o) => o.label);
+    expect(labels('fr', 'metric')).toContain('4,5 mm');
+    expect(labels('en', 'metric')).toContain('4.5 mm');
+    expect(labels('en', 'us')).toContain('US 7 (4.5 mm)');
+    expect(labels('en', 'us')).toContain('3 mm');
+    expect(labels('en', 'us', 'crochet')).toContain('US G-6 (4 mm)');
+    expect(toolSizeOptions('knitting', 'fr', 'us').find((o) => o.label === 'US 7 (4,5 mm)')?.value).toBe('4.5 mm');
+    // Older free text is understood; anything else is kept as typed.
+    expect(canonicalToolSize('4,5 mm (US 7)', 'knitting')).toBe('4.5 mm');
+    expect(canonicalToolSize('Machine 80/12', 'sewing')).toBe('Machine 80/12');
+    expect(formatToolSize('bamboo circulars', 'knitting', 'en', 'us')).toBe('bamboo circulars');
+    expect(toolSizeOptions('sewing', 'fr', 'us').map((o) => o.label)).toContain('Jean 100/16');
     expect(partPresets('knitting', 'fr')).toContain('Manche gauche');
   });
 

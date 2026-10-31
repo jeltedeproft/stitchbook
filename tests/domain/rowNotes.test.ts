@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { setCount } from '../../src/domain/counters';
 import { updateComponent } from '../../src/domain/components';
-import { isFinished, rowNote, setRowNote, upcomingNotes, workingRow } from '../../src/domain/rowNotes';
-import { filterProjects, DEFAULT_FILTER } from '../../src/domain/search';
+import { componentProgress } from '../../src/domain/progress';
+import { isFinished, pieceRows, rowNote, setRowNote, topRow, upcomingNotes, workingRow } from '../../src/domain/rowNotes';
 import { normalizeProject } from '../../src/domain/validation';
 import { makeProject } from '../helpers';
 
@@ -55,6 +55,30 @@ describe('row notes', () => {
     expect(isFinished(updateComponent(next, id, { targetRows: 34 }).components[0])).toBe(true);
   });
 
+  it('tracks two pieces worked at once', () => {
+    const { p, id } = setup();
+    let next = updateComponent(p, id, { targetRows: 10, pairRows: 0 });
+    next = setCount(next, id, 'rows', 4);
+    next = setCount(next, id, 'pairRows', 3);
+    next = setRowNote(next, id, 5, 'Heel');
+    next = setRowNote(next, id, 6, 'Gusset');
+    let c = next.components[0];
+    expect(pieceRows(c)).toEqual([4, 3]);
+    expect(topRow(c)).toBe(5);
+    expect(upcomingNotes(c).map((n) => n.row)).toEqual([6]);
+    expect(componentProgress(c)).toBeCloseTo(0.35);
+
+    c = setCount(next, id, 'rows', 10).components[0];
+    expect(isFinished(c)).toBe(false);
+    expect(topRow(c)).toBe(10);
+    expect(isFinished(setCount({ ...next, components: [c] }, id, 'pairRows', 10).components[0])).toBe(true);
+
+    const single = updateComponent(next, id, { pairRows: undefined }).components[0];
+    expect(pieceRows(single)).toEqual([4]);
+    expect(normalizeProject(JSON.parse(JSON.stringify(next)))!.components[0].pairRows).toBe(3);
+    expect(normalizeProject(JSON.parse(JSON.stringify(p)))!.components[0].pairRows).toBeUndefined();
+  });
+
   it('survives storage and import, dropping junk', () => {
     const { p, id } = setup();
     const raw = JSON.parse(JSON.stringify(setRowNote(p, id, 5, 'Keep')));
@@ -67,9 +91,4 @@ describe('row notes', () => {
     expect(normalizeProject(raw)!.components[0].rowNotes).toBeUndefined();
   });
 
-  it('is found by search', () => {
-    const { p, id } = setup();
-    const withNote = setRowNote(p, id, 5, 'Picot edge');
-    expect(filterProjects([withNote], { ...DEFAULT_FILTER, query: 'picot' })).toHaveLength(1);
-  });
 });

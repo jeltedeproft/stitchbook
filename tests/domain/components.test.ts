@@ -19,12 +19,7 @@ describe('components', () => {
   it('adds components at the end with sensible defaults', () => {
     const p = addComponent(makeProject('Sweater', ['Body']), '  Left sleeve ');
     expect(names(p)).toEqual(['Body', 'Left sleeve']);
-    expect(p.components[1]).toMatchObject({ status: 'not_started', rows: 0, stitches: 0, countUnit: 'row', countersEnabled: true, colors: [] });
-  });
-
-  it('turns counters off by default for sewing', () => {
-    const p = addComponent(makeProject('Dress', [], 'sewing'), 'Bodice');
-    expect(p.components[0].countersEnabled).toBe(false);
+    expect(p.components[1]).toMatchObject({ status: 'not_started', rows: 0, stitches: 0, countUnit: 'row', colors: [] });
   });
 
   it('rejects empty and too-long names', () => {

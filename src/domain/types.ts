@@ -35,6 +35,11 @@ export interface ProjectComponent {
   status: ComponentStatus;
   countUnit: CountUnit;
   rows: number;
+  /**
+   * Set when two pieces are worked at once (a pair of socks or sleeves): rows finished on the
+   * second piece. `rows` then counts the first piece. Both share the target and the row notes.
+   */
+  pairRows?: number;
   targetRows?: number;
   stitches: number;
   toolSize?: string;
@@ -42,7 +47,6 @@ export interface ProjectComponent {
   notes?: string;
   /** Sorted by row, at most one note per row. */
   rowNotes?: RowNote[];
-  countersEnabled: boolean;
 }
 
 export interface Project {
@@ -62,4 +66,4 @@ export interface Project {
   updatedAt: number;
 }
 
-export type CounterField = 'rows' | 'stitches';
+export type CounterField = 'rows' | 'pairRows' | 'stitches';

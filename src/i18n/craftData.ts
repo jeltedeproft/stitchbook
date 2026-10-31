@@ -1,47 +1,83 @@
 import type { Craft } from '../domain/types';
-import type { Lang } from './lang';
+import { formatNumber } from './I18nProvider';
+import type { Lang, SizeSystem } from './lang';
 
-const KNITTING_EN = [
-  '2.0 mm (US 0)', '2.25 mm (US 1)', '2.75 mm (US 2)', '3.0 mm', '3.25 mm (US 3)',
-  '3.5 mm (US 4)', '3.75 mm (US 5)', '4.0 mm (US 6)', '4.5 mm (US 7)', '5.0 mm (US 8)',
-  '5.5 mm (US 9)', '6.0 mm (US 10)', '6.5 mm (US 10½)', '8.0 mm (US 11)', '9.0 mm (US 13)',
-  '10 mm (US 15)', '12 mm (US 17)',
+/** A needle or hook size: its metric diameter and, where one exists, the US name. */
+interface Size {
+  mm: number;
+  us?: string;
+}
+
+const KNITTING: Size[] = [
+  { mm: 2, us: '0' }, { mm: 2.25, us: '1' }, { mm: 2.5 }, { mm: 2.75, us: '2' }, { mm: 3 },
+  { mm: 3.25, us: '3' }, { mm: 3.5, us: '4' }, { mm: 3.75, us: '5' }, { mm: 4, us: '6' },
+  { mm: 4.5, us: '7' }, { mm: 5, us: '8' }, { mm: 5.5, us: '9' }, { mm: 6, us: '10' },
+  { mm: 6.5, us: '10½' }, { mm: 7 }, { mm: 8, us: '11' }, { mm: 9, us: '13' }, { mm: 10, us: '15' },
+  { mm: 12, us: '17' }, { mm: 15, us: '19' },
 ];
 
-const CROCHET_EN = [
-  '2.25 mm (B-1)', '2.75 mm (C-2)', '3.25 mm (D-3)', '3.5 mm (E-4)', '3.75 mm (F-5)',
-  '4.0 mm (G-6)', '4.5 mm (7)', '5.0 mm (H-8)', '5.5 mm (I-9)', '6.0 mm (J-10)',
-  '6.5 mm (K-10½)', '8.0 mm (L-11)', '9.0 mm (M/N-13)', '10 mm (N/P-15)',
+const CROCHET: Size[] = [
+  { mm: 2 }, { mm: 2.25, us: 'B-1' }, { mm: 2.5 }, { mm: 2.75, us: 'C-2' }, { mm: 3 },
+  { mm: 3.25, us: 'D-3' }, { mm: 3.5, us: 'E-4' }, { mm: 3.75, us: 'F-5' }, { mm: 4, us: 'G-6' },
+  { mm: 4.5, us: '7' }, { mm: 5, us: 'H-8' }, { mm: 5.5, us: 'I-9' }, { mm: 6, us: 'J-10' },
+  { mm: 6.5, us: 'K-10½' }, { mm: 7 }, { mm: 8, us: 'L-11' }, { mm: 9, us: 'M/N-13' }, { mm: 10, us: 'N/P-15' },
+  { mm: 12 },
 ];
 
-const SEWING_EN = [
-  'Machine 70/10', 'Machine 80/12', 'Machine 90/14', 'Machine 100/16', 'Machine 110/18',
-  'Jersey 80/12', 'Denim 100/16', 'Hand needle', 'Twin needle 4.0',
-];
+// Machine needles carry both systems in their name already, so sewing has one list per language.
+const SEWING: Record<Lang, string[]> = {
+  en: [
+    'Machine 70/10', 'Machine 80/12', 'Machine 90/14', 'Machine 100/16', 'Machine 110/18',
+    'Jersey 80/12', 'Denim 100/16', 'Hand needle', 'Twin needle 4.0',
+  ],
+  fr: [
+    'Machine 70/10', 'Machine 80/12', 'Machine 90/14', 'Machine 100/16', 'Machine 110/18',
+    'Jersey 80/12', 'Jean 100/16', 'Aiguille à main', 'Aiguille double 4,0',
+  ],
+};
 
-// French patterns use metric sizes with a decimal comma.
-const METRIC_FR = [
-  '2 mm', '2,5 mm', '3 mm', '3,25 mm', '3,5 mm', '3,75 mm', '4 mm', '4,5 mm', '5 mm', '5,5 mm',
-  '6 mm', '6,5 mm', '7 mm', '8 mm', '9 mm', '10 mm', '12 mm',
-];
+export interface ToolOption {
+  value: string;
+  label: string;
+}
 
-const SEWING_FR = [
-  'Machine 70/10', 'Machine 80/12', 'Machine 90/14', 'Machine 100/16', 'Machine 110/18',
-  'Jersey 80/12', 'Jean 100/16', 'Aiguille à main', 'Aiguille double 4,0',
-];
+function sizesFor(craft: Craft): Size[] | undefined {
+  if (craft === 'sewing') return undefined;
+  return craft === 'crochet' ? CROCHET : KNITTING;
+}
 
-export function toolSizeSuggestions(craft: Craft, lang: Lang): string[] {
-  if (lang === 'fr') return craft === 'sewing' ? SEWING_FR : METRIC_FR;
-  switch (craft) {
-    case 'knitting':
-      return KNITTING_EN;
-    case 'crochet':
-      return CROCHET_EN;
-    case 'sewing':
-      return SEWING_EN;
-    default:
-      return [...KNITTING_EN, ...CROCHET_EN];
-  }
+/** The diameter in "4.5 mm", "4,5 mm" or "4.5 mm (US 7)", if the text starts with one. */
+function parseMm(value: string): number | undefined {
+  const m = /^\s*(\d+(?:[.,]\d+)?)\s*mm\b/i.exec(value);
+  return m ? Number(m[1].replace(',', '.')) : undefined;
+}
+
+/**
+ * Sizes are stored as "4.5 mm" whatever the display system or language, so switching to US sizes
+ * or to French relabels them instead of leaving old text behind. Other text is kept as typed.
+ */
+export function canonicalToolSize(value: string, craft: Craft): string {
+  const mm = sizesFor(craft) ? parseMm(value) : undefined;
+  return mm === undefined ? value.trim() : `${mm} mm`;
+}
+
+export function formatToolSize(value: string, craft: Craft, lang: Lang, system: SizeSystem): string {
+  const sizes = sizesFor(craft);
+  const mm = sizes ? parseMm(value) : undefined;
+  if (mm === undefined) return value;
+  const metric = `${formatNumber(lang, mm)} mm`;
+  const us = system === 'us' ? sizes!.find((s) => s.mm === mm)?.us : undefined;
+  return us ? `US ${us} (${metric})` : metric;
+}
+
+/** Choices for the size dropdown, in the chosen system. */
+export function toolSizeOptions(craft: Craft, lang: Lang, system: SizeSystem): ToolOption[] {
+  const sizes = sizesFor(craft);
+  if (!sizes) return SEWING[lang].map((s) => ({ value: s, label: s }));
+  return sizes.map(({ mm }) => {
+    const value = `${mm} mm`;
+    return { value, label: formatToolSize(value, craft, lang, system) };
+  });
 }
 
 const PRESETS: Record<Lang, Record<Craft, string[]>> = {

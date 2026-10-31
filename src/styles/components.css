@@ -147,35 +147,6 @@ main { outline: none; }
 }
 .hero h1 { margin: 2px 0 4px; }
 
-.resume {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 14px;
-  padding: 14px;
-  border-radius: var(--r-lg);
-  background: var(--c-surface);
-  border: 1px solid var(--c-line);
-  box-shadow: var(--shadow-1);
-  color: var(--c-ink);
-  text-decoration: none;
-  transition: box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
-}
-.resume:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); }
-.resume__visual { width: 56px; height: 56px; border-radius: var(--r-md); }
-.resume__visual svg { width: 28px; height: 28px; }
-.resume__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.resume__title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; overflow-wrap: anywhere; }
-.resume__go {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--c-primary);
-  color: var(--c-on-primary);
-}
-
 .notice {
   display: flex;
   flex-wrap: wrap;
@@ -188,33 +159,6 @@ main { outline: none; }
   font-size: 0.95rem;
 }
 
-.toolbar { display: flex; gap: 10px; }
-
-.search {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-.search svg { position: absolute; left: 14px; color: var(--c-muted); pointer-events: none; }
-.search input {
-  width: 100%;
-  min-height: 48px;
-  padding: 10px 14px 10px 44px;
-  border-radius: 999px;
-  border: 1.5px solid var(--c-field-line);
-  background: var(--c-surface);
-}
-
-.select-sm {
-  min-height: 48px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1.5px solid var(--c-field-line);
-  background: var(--c-surface);
-  max-width: 40%;
-}
-
 .chips {
   display: flex;
   gap: 8px;
@@ -225,7 +169,6 @@ main { outline: none; }
 }
 .chips::-webkit-scrollbar { display: none; }
 .chips--sm { margin: 10px 0 0; flex-wrap: wrap; overflow: visible; }
-.chips__sep { flex: 0 0 1px; background: var(--c-line); margin: 6px 2px; }
 
 .chip {
   flex: 0 0 auto;
@@ -244,6 +187,7 @@ main { outline: none; }
 .chips--sm .chip { min-height: 36px; font-size: 0.88rem; background: var(--c-surface-2); border-color: transparent; }
 
 /* ---------- Project cards ---------- */
+.overview__archived { align-self: center; color: var(--c-muted); }
 .pgrid {
   list-style: none;
   margin: 0;
@@ -448,6 +392,8 @@ main { outline: none; }
 .part__enable { align-self: flex-start; }
 
 .part__counters { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+/* left and right side by side, stitches underneath */
+.part__counters--pair > :last-child { grid-column: 1 / -1; }
 @media (max-width: 600px) {
   .part__counters { grid-template-columns: 1fr; }
   .counter__row { grid-template-columns: 64px 1fr 64px; }
@@ -616,7 +562,9 @@ input::placeholder, textarea::placeholder { color: var(--c-muted); opacity: 0.85
   cursor: pointer;
 }
 .segmented label.is-on { background: var(--c-ink); color: var(--c-bg); border-color: var(--c-ink); }
-.segmented input, .craft-option input, .swatch-option input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.segmented input, .craft-option input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+/* the whole swatch is the tap target; the radio itself never shows */
+.swatch-option input { appearance: none; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .segmented label:has(input:focus-visible),
 .craft-option:has(input:focus-visible),
 .swatch-option:has(input:focus-visible) { outline: 3px solid var(--c-focus); outline-offset: 2px; }
@@ -666,7 +614,6 @@ input[type='color'] { width: 52px; height: 44px; padding: 2px; border-radius: va
 .photo-picker img, .photo-picker__empty { width: 96px; height: 96px; border-radius: var(--r-md); object-fit: cover; }
 .photo-picker__empty { display: grid; place-items: center; background: var(--c-surface-2); color: var(--c-muted); }
 .photo-picker__actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.file-btn { cursor: pointer; }
 
 /* ---------- Sheet / dialog ---------- */
 .sheet-backdrop {
@@ -872,3 +819,20 @@ input[type='color'] { width: 52px; height: 44px; padding: 2px; border-radius: va
 .rowlog__planrow { display: flex; align-items: center; gap: var(--sp-3); }
 .rowlog__planrow label { font-size: 0.9rem; font-weight: 700; }
 .rowlog__planrow input { width: 96px; min-height: 40px; }
+
+/* A pair worked at once: how far each piece has got on this row. */
+.logrow__side > span[aria-hidden] {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 var(--sp-2);
+  border-radius: 99px;
+  border: 1.5px solid var(--c-line);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--c-muted);
+}
+.logrow__side.is-done > span[aria-hidden] { background: var(--s-done-bg); border-color: transparent; color: var(--s-done-fg); }
+.logrow__side.is-next > span[aria-hidden] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
+.logrow__side.is-todo > span[aria-hidden] { border-style: dashed; }

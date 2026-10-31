@@ -27,6 +27,28 @@ export function rememberLang(lang: Lang): void {
   }
 }
 
+/** How needle and hook sizes are shown. Metric is the default (Belgium and most of Europe). */
+export type SizeSystem = 'metric' | 'us';
+export const SIZE_SYSTEMS: SizeSystem[] = ['metric', 'us'];
+const SIZES_KEY = 'stitchbook.sizes';
+
+export function detectSizes(): SizeSystem {
+  try {
+    if (localStorage.getItem(SIZES_KEY) === 'us') return 'us';
+  } catch {
+    // Storage can be blocked; metric it is.
+  }
+  return 'metric';
+}
+
+export function rememberSizes(system: SizeSystem): void {
+  try {
+    localStorage.setItem(SIZES_KEY, system);
+  } catch {
+    // Not fatal: the choice just won't be remembered next time.
+  }
+}
+
 /** CLDR plural category for the two forms we use. French treats 0 and 1 as singular. */
 export function pluralCategory(lang: Lang, count: number): 'one' | 'other' {
   if (lang === 'fr') return count >= 0 && count < 2 ? 'one' : 'other';

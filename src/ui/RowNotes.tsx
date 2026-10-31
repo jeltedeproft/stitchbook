@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react';
-import { isFinished, rowNote, setRowNote, upcomingNotes, workingRow } from '../domain/rowNotes';
+import { isFinished, pieceRows, rowNote, setRowNote, topRow, upcomingNotes } from '../domain/rowNotes';
 import type { Project, ProjectComponent } from '../domain/types';
 import { LIMITS, MAX_COUNT, parseCount } from '../domain/validation';
 import { formatNumber, useI18n } from '../i18n/I18nProvider';
@@ -12,11 +12,16 @@ import { CheckIcon, EditIcon } from './icons';
 const COMPACT_ROWS = 6;
 
 type RowState = 'planned' | 'now' | 'done';
+type SideState = 'done' | 'next' | 'todo';
+
+const SIDES = ['pair.left', 'pair.right'] as const;
+const SIDE_TEXT = { done: 'pair.sideDone', next: 'pair.sideNext', todo: 'pair.sideTodo' } as const;
 
 /**
  * The part's rows as a running log, newest on top: notes planned for later rows, the row on the
  * needles, then every finished row. Counting up adds the next row above the ones already worked,
- * and any row can carry a note.
+ * and any row can carry a note. When a pair is worked at once, each row shows how far the left and
+ * right piece have got, and a row only counts as done once both have it.
  */
 export function RowLog({ project, component: c }: { project: Project; component: ProjectComponent }) {
   const { t, tp, lang } = useI18n();
@@ -30,13 +35,17 @@ export function RowLog({ project, component: c }: { project: Project; component:
   const unitLower = unit.toLowerCase();
   const title = t(c.countUnit === 'round' ? 'rows.logRound' : 'rows.log');
   const finished = isFinished(c);
-  const current = workingRow(c);
+  const pieces = pieceRows(c);
+  const paired = pieces.length > 1;
+  const top = topRow(c);
 
   const planned = finished ? [] : upcomingNotes(c, Infinity);
-  const worked: { row: number; state: RowState }[] = [
-    ...(finished ? [] : [{ row: current, state: 'now' as const }]),
-    ...Array.from({ length: c.rows }, (_, i) => ({ row: c.rows - i, state: 'done' as const })),
-  ];
+  const worked = Array.from({ length: top }, (_, i) => {
+    const row = top - i;
+    return { row, state: (pieces.every((n) => row <= n) ? 'done' : 'now') as RowState };
+  });
+  const sideState = (row: number, n: number): SideState =>
+    row <= n ? 'done' : row === n + 1 && !(c.targetRows && n >= c.targetRows) ? 'next' : 'todo';
   const scrolls = worked.length > COMPACT_ROWS;
 
   const save = (row: number, text: string) => {
@@ -71,10 +80,24 @@ export function RowLog({ project, component: c }: { project: Project; component:
           <button type="button" className="logrow__btn" onClick={() => setEditing(row)}>
             <span className="logrow__name">
               {t('rows.row', { unit, n: row })}
-              {state === 'now' && (
-                <span className="logrow__tag">{t(project.craft === 'crochet' ? 'rows.nowHook' : 'rows.now')}</span>
-              )}
-              {state === 'done' && <span className="visually-hidden">{t('rows.done')}</span>}
+              {paired && state !== 'planned'
+                ? pieces.map((n, i) => {
+                    const side = sideState(row, n);
+                    const name = t(SIDES[i]);
+                    return (
+                      <span key={i} className={`logrow__side is-${side}`}>
+                        <span aria-hidden="true">
+                          {name}
+                          {side === 'done' && <CheckIcon size={12} strokeWidth={3} />}
+                        </span>
+                        <span className="visually-hidden">{t(SIDE_TEXT[side], { side: name })}</span>
+                      </span>
+                    );
+                  })
+                : state === 'now' && (
+                    <span className="logrow__tag">{t(project.craft === 'crochet' ? 'rows.nowHook' : 'rows.now')}</span>
+                  )}
+              {state === 'done' && !paired && <span className="visually-hidden">{t('rows.done')}</span>}
             </span>
             {note ? (
               <span className="logrow__note">{note}</span>
@@ -120,7 +143,7 @@ export function RowLog({ project, component: c }: { project: Project; component:
       {planning ? (
         <PlanForm
           unitLower={unitLower}
-          suggested={finished ? current : current + 1}
+          suggested={finished ? top : top + 1}
           onCancel={() => setPlanning(false)}
           onSave={(row, text) => {
             save(row, text);
@@ -217,7 +240,7 @@ function PlanForm({ unitLower, suggested, onSave, onCancel }: PlanProps) {
       </div>
       {error && <p className="field-error" id={`${id}-err`}>{error}</p>}
       <label htmlFor={`${id}-note`} className="visually-hidden">{t('rows.planNote')}</label>
-      <NoteInput id={`${id}-note`} value={text} onChange={setText} onCancel={onCancel} onSubmit={submit} autoFocus={false} />
+      <NoteInput id={`${id}-note`} value={text} onChange={setText} onCancel={onCancel} onSubmit={submit} autoFocus={false} placeholder={t('rows.planNote')} />
       <div className="logrow__actions">
         <span className="spacer" />
         <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>{t('common.cancel')}</button>
@@ -234,11 +257,11 @@ interface NoteInputProps {
   onSubmit(): void;
   onCancel(): void;
   autoFocus?: boolean;
+  placeholder?: string;
 }
 
 /** Enter saves, Shift+Enter adds a line, Escape cancels without closing anything around it. */
-function NoteInput({ id, value, onChange, onSubmit, onCancel, autoFocus = true }: NoteInputProps) {
-  const { t } = useI18n();
+function NoteInput({ id, value, onChange, onSubmit, onCancel, autoFocus = true, placeholder }: NoteInputProps) {
   return (
     <textarea
       id={id}
@@ -246,7 +269,7 @@ function NoteInput({ id, value, onChange, onSubmit, onCancel, autoFocus = true }
       autoFocus={autoFocus}
       value={value}
       maxLength={LIMITS.rowNote}
-      placeholder={t('rows.notePlaceholder')}
+      placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {

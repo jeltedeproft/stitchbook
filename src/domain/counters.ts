@@ -15,9 +15,10 @@ export function setCount(
 ): Project {
   const target = project.components.find((c) => c.id === componentId);
   if (!target) return project;
+  const current = target[field] ?? 0;
   const next = clampCount(value);
-  if (next === target[field]) return project;
-  const countingUp = next > target[field];
+  if (next === current) return project;
+  const countingUp = next > current;
 
   const components = project.components.map((c): ProjectComponent => {
     if (c.id !== componentId) return c;
@@ -45,7 +46,7 @@ export function changeCount(
 ): Project {
   const target = project.components.find((c) => c.id === componentId);
   if (!target) return project;
-  return setCount(project, componentId, field, target[field] + delta);
+  return setCount(project, componentId, field, (target[field] ?? 0) + delta);
 }
 
 export function resetCount(project: Project, componentId: string, field: CounterField): Project {

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { BackupFormatError, backupFileName, createBackup } from '../storage/backup';
 import { useI18n } from '../i18n/I18nProvider';
-import { LANGS } from '../i18n/lang';
+import { LANGS, SIZE_SYSTEMS } from '../i18n/lang';
 import { href } from '../router';
 import { useStore } from '../state/store';
 import { useToast } from '../state/toast';
@@ -13,7 +13,8 @@ const LANG_NAMES = { en: 'English', fr: 'Français' } as const;
 export function SettingsScreen() {
   const { projects, storageKind, importJson, removeSamples } = useStore();
   const toast = useToast();
-  const { t, tp, lang, setLang } = useI18n();
+  const { t, tp, lang, setLang, sizes, setSizes } = useI18n();
+  const importInput = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string>();
   const [confirmSamples, setConfirmSamples] = useState(false);
   const sampleCount = projects.filter((p) => p.isSample).length;
@@ -51,6 +52,18 @@ export function SettingsScreen() {
         {sampleCount > 0 && <p className="hint">{t('settings.languageHint')}</p>}
       </section>
 
+      <section className="card">
+        <h2 id="sizes-heading">{t('settings.sizesTitle')}</h2>
+        <div className="segmented" role="radiogroup" aria-labelledby="sizes-heading">
+          {SIZE_SYSTEMS.map((s) => (
+            <label key={s} className={sizes === s ? 'is-on' : ''}>
+              <input type="radio" name="sizes" value={s} checked={sizes === s} onChange={() => setSizes(s)} />
+              {t(s === 'metric' ? 'settings.sizesMetric' : 'settings.sizesUs')}
+            </label>
+          ))}
+        </div>
+      </section>
+
       <section className="card prose">
         <h2>{t('settings.whereTitle')}</h2>
         {storageKind === 'memory' ? (
@@ -74,12 +87,12 @@ export function SettingsScreen() {
           <button type="button" className="btn btn--primary" onClick={exportAll} disabled={projects.length === 0}>
             <DownloadIcon size={18} /> {t('settings.export')}
           </button>
-          <label className="btn btn--soft file-btn" htmlFor="import-file">
+          <button type="button" className="btn btn--soft" onClick={() => importInput.current?.click()}>
             <UploadIcon size={18} /> {t('settings.import')}
-          </label>
+          </button>
           <input
-            id="import-file"
-            className="visually-hidden"
+            ref={importInput}
+            hidden
             type="file"
             accept="application/json,.json"
             onChange={async (e) => {

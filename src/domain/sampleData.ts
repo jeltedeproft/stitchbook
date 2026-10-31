@@ -10,7 +10,6 @@ const TEXT = {
     leftSleeve: 'Left sleeve', rightSleeve: 'Right sleeve', collar: 'Collar',
     sleeveNotes: 'Decrease 2 sts every 8th round.', stripe: 'Two-round stripe every 10 rounds',
     matchStripes: 'Match left sleeve stripes', collarNotes: 'Pick up 96 sts, 1×1 rib.',
-    mm50: '5.0 mm (US 8)', mm45: '4.5 mm (US 7)', mm40: '4.0 mm (US 6)', hook40: '4.0 mm (G-6)', hook45: '4.5 mm (7)',
     blanket: 'Granny square blanket', blanketNotes: '48 squares in a 6 × 8 layout. Join as you go.',
     cotton: 'Cotton blend DK', cottonFiber: 'Cotton / acrylic', sage: 'Sage', cream: 'Cream', mustard: 'Mustard',
     squares: 'Squares', squaresNotes: 'Row counter = squares finished.',
@@ -30,7 +29,6 @@ const TEXT = {
     leftSleeve: 'Manche gauche', rightSleeve: 'Manche droite', collar: 'Col',
     sleeveNotes: 'Diminuer 2 m. tous les 8 tours.', stripe: 'Rayure de 2 tours tous les 10 tours',
     matchStripes: 'Mêmes rayures que la manche gauche', collarNotes: 'Relever 96 m., côtes 1/1.',
-    mm50: '5 mm', mm45: '4,5 mm', mm40: '4 mm', hook40: '4 mm', hook45: '4,5 mm',
     blanket: 'Plaid en granny squares', blanketNotes: '48 carrés disposés en 6 × 8. Assemblage au fur et à mesure.',
     cotton: 'Coton mélangé DK', cottonFiber: 'Coton / acrylique', sage: 'Sauge', cream: 'Crème', mustard: 'Moutarde',
     squares: 'Carrés', squaresNotes: 'Compteur de tours = carrés terminés.',
@@ -69,10 +67,10 @@ export function sampleProjects(lang: Lang = 'en', nowMs: number = Date.now()): P
         { id: 'sample-hs-rust', name: x.highland, brand: 'Drops', fiber: x.merino, colorName: x.rust, colorHex: '#a0522d', weight: 'Worsted' },
       ],
       components: [
-        { id: 'sample-hs-body', name: x.body, status: 'complete', countUnit: 'round', rows: 112, targetRows: 112, stitches: 196, toolSize: x.mm50, countersEnabled: true, notes: x.bodyNotes, colors: [{ id: 'sample-hs-c1', materialId: 'sample-hs-oat', note: x.main }] },
-        { id: 'sample-hs-left-sleeve', name: x.leftSleeve, status: 'in_progress', countUnit: 'round', rows: 34, targetRows: 96, stitches: 58, toolSize: x.mm45, countersEnabled: true, notes: x.sleeveNotes, rowNotes: [{ row: 24, text: x.rn24 }, { row: 35, text: x.rn35 }, { row: 40, text: x.rn40 }, { row: 84, text: x.rn84 }], colors: [{ id: 'sample-hs-c2', materialId: 'sample-hs-oat', note: x.main }, { id: 'sample-hs-c3', materialId: 'sample-hs-rust', note: x.stripe }] },
-        { id: 'sample-hs-right-sleeve', name: x.rightSleeve, status: 'in_progress', countUnit: 'round', rows: 30, targetRows: 96, stitches: 58, toolSize: x.mm45, countersEnabled: true, colors: [{ id: 'sample-hs-c4', materialId: 'sample-hs-oat' }, { id: 'sample-hs-c5', materialId: 'sample-hs-rust', note: x.matchStripes }] },
-        { id: 'sample-hs-collar', name: x.collar, status: 'not_started', countUnit: 'round', rows: 0, targetRows: 12, stitches: 0, toolSize: x.mm40, countersEnabled: true, notes: x.collarNotes, colors: [{ id: 'sample-hs-c6', materialId: 'sample-hs-rust' }] },
+        { id: 'sample-hs-body', name: x.body, status: 'complete', countUnit: 'round', rows: 112, targetRows: 112, stitches: 196, toolSize: '5 mm', notes: x.bodyNotes, colors: [{ id: 'sample-hs-c1', materialId: 'sample-hs-oat', note: x.main }] },
+        { id: 'sample-hs-left-sleeve', name: x.leftSleeve, status: 'in_progress', countUnit: 'round', rows: 34, targetRows: 96, stitches: 58, toolSize: '4.5 mm', notes: x.sleeveNotes, rowNotes: [{ row: 24, text: x.rn24 }, { row: 35, text: x.rn35 }, { row: 40, text: x.rn40 }, { row: 84, text: x.rn84 }], colors: [{ id: 'sample-hs-c2', materialId: 'sample-hs-oat', note: x.main }, { id: 'sample-hs-c3', materialId: 'sample-hs-rust', note: x.stripe }] },
+        { id: 'sample-hs-right-sleeve', name: x.rightSleeve, status: 'in_progress', countUnit: 'round', rows: 30, targetRows: 96, stitches: 58, toolSize: '4.5 mm', colors: [{ id: 'sample-hs-c4', materialId: 'sample-hs-oat' }, { id: 'sample-hs-c5', materialId: 'sample-hs-rust', note: x.matchStripes }] },
+        { id: 'sample-hs-collar', name: x.collar, status: 'not_started', countUnit: 'round', rows: 0, targetRows: 12, stitches: 0, toolSize: '4 mm', notes: x.collarNotes, colors: [{ id: 'sample-hs-c6', materialId: 'sample-hs-rust' }] },
       ],
     },
     {
@@ -93,8 +91,8 @@ export function sampleProjects(lang: Lang = 'en', nowMs: number = Date.now()): P
         { id: 'sample-gb-mustard', name: x.cotton, brand: 'Scheepjes', fiber: x.cottonFiber, colorName: x.mustard, colorHex: '#d4a35a' },
       ],
       components: [
-        { id: 'sample-gb-squares', name: x.squares, status: 'in_progress', countUnit: 'round', rows: 29, targetRows: 48, stitches: 0, toolSize: x.hook40, countersEnabled: true, notes: x.squaresNotes, colors: [{ id: 'sample-gb-c1', materialId: 'sample-gb-mustard', note: x.round1 }, { id: 'sample-gb-c2', materialId: 'sample-gb-sage', note: x.rounds23 }, { id: 'sample-gb-c3', materialId: 'sample-gb-cream', note: x.round4 }] },
-        { id: 'sample-gb-border', name: x.border, status: 'not_started', countUnit: 'round', rows: 0, targetRows: 4, stitches: 0, toolSize: x.hook45, countersEnabled: true, colors: [{ id: 'sample-gb-c4', materialId: 'sample-gb-sage' }] },
+        { id: 'sample-gb-squares', name: x.squares, status: 'in_progress', countUnit: 'round', rows: 29, targetRows: 48, stitches: 0, toolSize: '4 mm', notes: x.squaresNotes, colors: [{ id: 'sample-gb-c1', materialId: 'sample-gb-mustard', note: x.round1 }, { id: 'sample-gb-c2', materialId: 'sample-gb-sage', note: x.rounds23 }, { id: 'sample-gb-c3', materialId: 'sample-gb-cream', note: x.round4 }] },
+        { id: 'sample-gb-border', name: x.border, status: 'not_started', countUnit: 'round', rows: 0, targetRows: 4, stitches: 0, toolSize: '4.5 mm', colors: [{ id: 'sample-gb-c4', materialId: 'sample-gb-sage' }] },
       ],
     },
     {
@@ -113,9 +111,9 @@ export function sampleProjects(lang: Lang = 'en', nowMs: number = Date.now()): P
         { id: 'sample-ld-thread', name: x.thread, brand: 'Gütermann', colorName: x.slate },
       ],
       components: [
-        { id: 'sample-ld-bodice', name: x.bodice, status: 'not_started', countUnit: 'row', rows: 0, stitches: 0, toolSize: 'Machine 80/12', countersEnabled: false, notes: x.bodiceNotes, colors: [{ id: 'sample-ld-c1', materialId: 'sample-ld-linen' }] },
-        { id: 'sample-ld-skirt', name: x.skirt, status: 'not_started', countUnit: 'row', rows: 0, stitches: 0, toolSize: 'Machine 80/12', countersEnabled: false, colors: [{ id: 'sample-ld-c2', materialId: 'sample-ld-linen' }] },
-        { id: 'sample-ld-pockets', name: x.pockets, status: 'not_started', countUnit: 'row', rows: 0, stitches: 0, countersEnabled: false, colors: [] },
+        { id: 'sample-ld-bodice', name: x.bodice, status: 'not_started', countUnit: 'row', rows: 0, stitches: 0, toolSize: 'Machine 80/12', notes: x.bodiceNotes, colors: [{ id: 'sample-ld-c1', materialId: 'sample-ld-linen' }] },
+        { id: 'sample-ld-skirt', name: x.skirt, status: 'not_started', countUnit: 'row', rows: 0, stitches: 0, toolSize: 'Machine 80/12', colors: [{ id: 'sample-ld-c2', materialId: 'sample-ld-linen' }] },
+        { id: 'sample-ld-pockets', name: x.pockets, status: 'not_started', countUnit: 'row', rows: 0, stitches: 0, colors: [] },
       ],
     },
   ];

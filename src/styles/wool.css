@@ -38,7 +38,6 @@ body { background: var(--knit) var(--c-bg); }
 
 /* ---------- Felt patches with a running stitch ---------- */
 .pcard__link,
-.resume,
 .phero,
 .part,
 .card {
@@ -47,10 +46,8 @@ body { background: var(--knit) var(--c-bg); }
 }
 .part--recent { outline-color: color-mix(in srgb, var(--c-primary) 50%, var(--c-stitch)); }
 /* The stitching uses outline, so focus rings on linked cards must win explicitly. */
-.pcard__link:focus-visible,
-.resume:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; }
+.pcard__link:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; }
 
-.resume__visual { border-radius: 50%; box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.18); }
 .visual--swatch {
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='12' viewBox='0 0 14 12'%3E%3Cpath d='M1.8 1.2Q3.2 7 7 10.8' fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M12.2 1.2Q10.8 7 7 10.8' fill='none' stroke='%23000' stroke-opacity='.12' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"),
@@ -64,8 +61,7 @@ body { background: var(--knit) var(--c-bg); }
 .add-part { border-color: var(--c-stitch); border-width: 2px; }
 
 /* ---------- Felt buttons ---------- */
-.btn--primary,
-.resume__go { box-shadow: var(--shadow-felt); }
+.btn--primary { box-shadow: var(--shadow-felt); }
 .btn--primary:active:not(:disabled) { box-shadow: inset 0 2px 3px rgba(60, 20, 5, 0.3); }
 
 /* ---------- Counters: a knitted swatch with coat buttons ---------- */

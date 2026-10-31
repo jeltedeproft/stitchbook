@@ -219,7 +219,6 @@ function AddComponentForm({ project, onAdd }: { project: Project; onAdd(name: st
           id={`${uid}-name`}
           value={name}
           maxLength={LIMITS.componentName}
-          placeholder={t('project.addPartPlaceholder')}
           onChange={(e) => {
             setName(e.target.value);
             if (error) setError(undefined);

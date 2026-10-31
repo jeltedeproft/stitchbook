@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { updateComponent } from '../../src/domain/components';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { addMaterial } from '../../src/domain/materials';
 import { goTo, makeProject, renderApp, seededRepo } from '../helpers';
@@ -64,9 +65,11 @@ describe('managing components', () => {
     expect(dialog.getByText('Part name is required.')).toBeInTheDocument();
 
     await user.type(name, 'Left sleeve');
-    await user.type(dialog.getByLabelText('Needle size'), '4.5 mm');
-    await user.click(dialog.getByLabelText('Rounds (in the round)'));
-    await user.type(dialog.getByLabelText(/Target rounds/), '96');
+    expect(dialog.queryByText(/Pick a common size/)).not.toBeInTheDocument();
+    await user.selectOptions(dialog.getByLabelText('Needle size'), '4.5 mm');
+    await user.click(dialog.getByLabelText('Rows'));
+    await user.click(dialog.getByLabelText('Rounds'));
+    await user.type(dialog.getByLabelText('Target rounds'), '96');
     await user.click(dialog.getByRole('button', { name: 'Add colour' }));
     await user.type(dialog.getByLabelText('Where is colour 1 used?'), 'Stripes every 10 rounds');
     await user.type(dialog.getByLabelText('Notes'), 'Decrease every 8th round');
@@ -92,21 +95,38 @@ describe('managing components', () => {
     });
   });
 
-  it('uses craft-appropriate labels and hides counters for sewing', async () => {
+  it('shows sizes in metric by default and in US when chosen in Settings', async () => {
+    const user = userEvent.setup();
+    let project = makeProject('Sweater', ['Sleeve']);
+    project = updateComponent(project, project.components[0].id, { toolSize: '4.5 mm (US 7)' });
+    renderApp(await seededRepo([project]));
+    goTo(`#/project/${project.id}`);
+    const card = within((await screen.findByRole('heading', { name: 'Sleeve' })).closest('article')!);
+    expect(card.getByText('4.5 mm')).toBeInTheDocument();
+
+    goTo('#/settings');
+    await user.click(await screen.findByLabelText('US'));
+    goTo(`#/project/${project.id}`);
+    expect(await screen.findByText('US 7 (4.5 mm)')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Edit Sleeve' }));
+    const size = within(screen.getByRole('dialog')).getByLabelText('Needle size');
+    expect(size).toHaveValue('4.5 mm');
+    expect(within(size).getByRole('option', { name: 'US 8 (5 mm)' })).toBeInTheDocument();
+  });
+
+  it('uses craft-appropriate labels and counts every part, sewing too', async () => {
     const user = userEvent.setup();
     const dress = makeProject('Dress', ['Bodice'], 'sewing');
     const hat = makeProject('Hat', ['Crown'], 'crochet');
     renderApp(await seededRepo([dress, hat]));
 
     goTo(`#/project/${dress.id}`);
-    expect(await screen.findByRole('button', { name: '+ Track rows and stitches' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Increase rows' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Increase rows' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Edit Bodice' }));
-    expect(within(screen.getByRole('dialog')).getByLabelText('Needle / tool')).toBeInTheDocument();
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByLabelText('Needle / tool')).toBeInTheDocument();
+    expect(dialog.queryByRole('checkbox', { name: /Track/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-
-    await user.click(screen.getByRole('button', { name: '+ Track rows and stitches' }));
-    expect(screen.getByRole('button', { name: 'Increase rows' })).toBeInTheDocument();
 
     goTo(`#/project/${hat.id}`);
     await user.click(await screen.findByRole('button', { name: 'Edit Crown' }));

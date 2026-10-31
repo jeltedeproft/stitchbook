@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { updateComponent } from '../../src/domain/components';
 import { addMaterial, materialSummary, removeMaterial, restoreMaterial, updateMaterial } from '../../src/domain/materials';
 import { componentProgress, projectProgress } from '../../src/domain/progress';
-import { continueCandidate, createProject, setArchived, updateProject, ValidationError } from '../../src/domain/projects';
-import { DEFAULT_FILTER, filterProjects } from '../../src/domain/search';
+import { createProject, setArchived, updateProject, ValidationError } from '../../src/domain/projects';
 import { normalizeProject } from '../../src/domain/validation';
 import { makeProject } from '../helpers';
 
@@ -25,33 +24,6 @@ describe('projects', () => {
     expect(setArchived(p, true).archived).toBe(true);
   });
 
-  it('suggests the most recently updated in-progress project to continue', () => {
-    const a = { ...makeProject('A', ['x']), status: 'in_progress' as const, updatedAt: 10 };
-    const b = { ...makeProject('B', ['x']), status: 'in_progress' as const, updatedAt: 20 };
-    const c = { ...makeProject('C', ['x']), status: 'paused' as const, updatedAt: 30 };
-    const d = { ...makeProject('D', ['x']), status: 'in_progress' as const, updatedAt: 40, archived: true };
-    expect(continueCandidate([a, b, c, d])?.name).toBe('B');
-  });
-});
-
-describe('search', () => {
-  const merino = addMaterial(makeProject('Harvest sweater'), { name: 'Highland', fiber: 'Merino' });
-  const socks = { ...makeProject('Autumn socks'), notes: 'Fish lips kiss heel', status: 'in_progress' as const };
-  const old = setArchived(makeProject('Old scarf', [], 'crochet'), true);
-  const all = [merino, socks, old];
-
-  it('matches name, notes and material text, case-insensitively', () => {
-    expect(filterProjects(all, { ...DEFAULT_FILTER, query: 'MERINO' }).map((p) => p.name)).toEqual(['Harvest sweater']);
-    expect(filterProjects(all, { ...DEFAULT_FILTER, query: 'heel' }).map((p) => p.name)).toEqual(['Autumn socks']);
-    expect(filterProjects(all, { ...DEFAULT_FILTER, query: 'nothing' })).toEqual([]);
-  });
-
-  it('filters by status, craft and archived state', () => {
-    expect(filterProjects(all, { ...DEFAULT_FILTER, status: 'in_progress' }).map((p) => p.name)).toEqual(['Autumn socks']);
-    expect(filterProjects(all, DEFAULT_FILTER)).toHaveLength(2);
-    expect(filterProjects(all, { ...DEFAULT_FILTER, archived: true }).map((p) => p.name)).toEqual(['Old scarf']);
-    expect(filterProjects(all, { ...DEFAULT_FILTER, archived: true, craft: 'knitting' })).toEqual([]);
-  });
 });
 
 describe('progress', () => {

@@ -63,9 +63,3 @@ export function sortByRecent(projects: Project[]): Project[] {
   return [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
-/** The project to suggest under "Continue where you left off". */
-export function continueCandidate(projects: Project[]): Project | undefined {
-  return sortByRecent(projects).find(
-    (p) => !p.archived && p.status === 'in_progress' && p.components.length > 0,
-  );
-}

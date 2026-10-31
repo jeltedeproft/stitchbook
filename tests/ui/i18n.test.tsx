@@ -51,7 +51,7 @@ describe('French interface', () => {
     await user.click(screen.getByRole('button', { name: 'Modifier Manche' }));
     const dialog = within(screen.getByRole('dialog'));
     expect(dialog.getByLabelText("Taille d'aiguille")).toBeInTheDocument();
-    expect(dialog.getByLabelText('Tours (en rond)')).toBeInTheDocument();
+    expect(dialog.getByLabelText('Tours')).toBeInTheDocument();
     await user.clear(dialog.getByLabelText('Nom'));
     await user.click(dialog.getByRole('button', { name: 'Enregistrer' }));
     expect(dialog.getByText('Le nom de la partie est obligatoire.')).toBeInTheDocument();
@@ -62,23 +62,23 @@ describe('French interface', () => {
     expect(within(screen.getByRole('dialog')).getByLabelText('Taille de crochet')).toBeInTheDocument();
   });
 
-  it('shows the overview, filters and empty states in French', async () => {
+  it('shows the overview and archived projects in French', async () => {
     const user = userEvent.setup();
-    renderApp(await seededRepo([{ ...makeProject('Chaussettes'), status: 'in_progress' }]), 'fr');
+    const old = { ...makeProject('Vieille écharpe'), archived: true };
+    renderApp(await seededRepo([{ ...makeProject('Chaussettes'), status: 'in_progress' }, old]), 'fr');
 
-    expect(await screen.findByText('1 projet en route.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'En cours' })).toBeInTheDocument();
-    await user.type(screen.getByLabelText('Rechercher des projets'), 'zzz');
-    expect(screen.getByText('Aucun projet ne correspond')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Effacer les filtres' }));
+    expect(await screen.findByRole('heading', { name: 'Vos projets', level: 1 })).toBeInTheDocument();
     expect(within(screen.getByRole('list', { name: 'Projets' })).getByText('Chaussettes')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Projets archivés (1)' }));
+    expect(within(screen.getByRole('list', { name: 'Projets archivés' })).getByText('Vieille écharpe')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '← Retour à vos projets' }));
+    expect(screen.getByText('Chaussettes')).toBeInTheDocument();
   });
 
   it('creates French sample projects on a first launch in French', async () => {
     renderApp(new MemoryProjectRepository(), 'fr');
     expect(await screen.findByRole('heading', { name: "Pull d'automne", level: 3 })).toBeInTheDocument();
     expect(screen.getAllByText('Exemple')).toHaveLength(3);
-    expect(screen.getByText(/Manche gauche · Tour 34 sur 96/)).toBeInTheDocument();
   });
 
   it('can switch language from Settings without changing data', async () => {

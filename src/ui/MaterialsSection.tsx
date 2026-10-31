@@ -116,14 +116,13 @@ function MaterialForm({
     if (!err) onSave(form);
   };
 
-  const text = (key: 'brand' | 'fiber' | 'colorName' | 'weight', label: string, placeholder: string) => (
+  const text = (key: 'brand' | 'fiber' | 'colorName' | 'weight', label: string) => (
     <div className="field">
       <label htmlFor={`${uid}-${key}`}>{label}</label>
       <input
         id={`${uid}-${key}`}
         value={form[key] ?? ''}
         maxLength={LIMITS.materialField}
-        placeholder={placeholder}
         onChange={(e) => set(key, e.target.value)}
       />
     </div>
@@ -148,7 +147,6 @@ function MaterialForm({
             id={`${uid}-name`}
             value={form.name}
             maxLength={LIMITS.materialField}
-            placeholder={t('materials.namePlaceholder')}
             onChange={(e) => set('name', e.target.value)}
             aria-invalid={!!error}
             aria-describedby={error ? `${uid}-name-err` : `${uid}-name-hint`}
@@ -161,10 +159,10 @@ function MaterialForm({
           )}
         </div>
         <div className="grid-2">
-          {text('brand', t('materials.brand'), t('materials.brandPlaceholder'))}
-          {text('fiber', t('materials.fiber'), t('materials.fiberPlaceholder'))}
-          {text('colorName', t('materials.colourName'), t('materials.colourNamePlaceholder'))}
-          {text('weight', t('materials.weight'), t('materials.weightPlaceholder'))}
+          {text('brand', t('materials.brand'))}
+          {text('fiber', t('materials.fiber'))}
+          {text('colorName', t('materials.colourName'))}
+          {text('weight', t('materials.weight'))}
         </div>
         <div className="field">
           <span className="label" id={`${uid}-hex-label`}>{t('materials.swatch')}</span>
@@ -189,7 +187,6 @@ function MaterialForm({
             rows={2}
             value={form.notes ?? ''}
             maxLength={LIMITS.materialNotes}
-            placeholder={t('materials.notesPlaceholder')}
             onChange={(e) => set('notes', e.target.value)}
           />
         </div>

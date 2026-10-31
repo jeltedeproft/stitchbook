@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { detectLang, pluralCategory, rememberLang, type Lang } from './lang';
+import { detectLang, detectSizes, pluralCategory, rememberLang, rememberSizes, type Lang, type SizeSystem } from './lang';
 import { catalogues, type MessageKey } from './messages';
 
 export type Params = Record<string, string | number>;
 
-/** Base names of keys that have `_one` / `_other` forms, e.g. 'overview.active'. */
+/** Base names of keys that have `_one` / `_other` forms, e.g. 'samples.removed'. */
 export type PluralKey = {
   [K in MessageKey]: K extends `${infer Base}_one` ? Base : never;
 }[MessageKey];
@@ -41,12 +41,16 @@ export interface I18n {
   setLang(lang: Lang): void;
   t(key: MessageKey, params?: Params): string;
   tp(base: PluralKey, count: number, params?: Params): string;
+  /** Needle and hook sizes in metric or US. */
+  sizes: SizeSystem;
+  setSizes(system: SizeSystem): void;
 }
 
 const I18nContext = createContext<I18n | null>(null);
 
 export function I18nProvider({ children, initialLang }: { children: ReactNode; initialLang?: Lang }) {
   const [lang, setLangState] = useState<Lang>(() => initialLang ?? detectLang());
+  const [sizes, setSizesState] = useState<SizeSystem>(detectSizes);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -57,14 +61,21 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
     setLangState(next);
   }, []);
 
+  const setSizes = useCallback((next: SizeSystem) => {
+    rememberSizes(next);
+    setSizesState(next);
+  }, []);
+
   const value = useMemo<I18n>(
     () => ({
       lang,
       setLang,
       t: (key, params) => translate(lang, key, params),
       tp: (base, count, params) => translatePlural(lang, base, count, params),
+      sizes,
+      setSizes,
     }),
-    [lang, setLang],
+    [lang, setLang, sizes, setSizes],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
