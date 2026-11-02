@@ -70,6 +70,10 @@ Screen*; Android: Chrome → ⋮ → *Install app*). On iPhone this also stops S
 app's data after a week without visits. Each phone keeps its own projects; share them with
 *Your data → Export / Import*.
 
+**Offline:** after one visit with a connection, the app opens and works without internet
+(`public/sw.js`, a service worker; `vite.config.ts` writes the list of files it keeps). When online,
+a new deploy is picked up the next time the app is opened.
+
 ## Code map
 
 ```text

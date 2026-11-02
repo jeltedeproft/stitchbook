@@ -9,6 +9,15 @@ import './styles/base.css';
 import './styles/components.css';
 import './styles/wool.css';
 
+// Offline support (public/sw.js). The entry file's name changes with every build, so passing it
+// along makes each deploy install a fresh offline copy.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  const build = new URL(import.meta.url).pathname.split('/').pop() ?? '';
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`./sw.js?build=${encodeURIComponent(build)}`).catch(() => {});
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <I18nProvider>
