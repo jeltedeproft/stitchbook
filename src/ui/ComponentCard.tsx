@@ -29,13 +29,37 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
   const stitchesLabel = t('unit.stitches');
   const progress = componentProgress(c);
 
+  /** Puts a count back as it was, with any row notes that counting down cleared. */
+  const restore = (field: CounterField) => {
+    const previous = { [field]: c[field] ?? 0, rowNotes: c.rowNotes };
+    return () => update(project.id, (p) => updateComponent(p, c.id, previous));
+  };
+
+  /** Applies a count; when counting down clears notes on undone rows, says so and offers undo. */
+  const count = (field: CounterField, value: number) => {
+    const undo = restore(field);
+    const after = setCount(project, c.id, field, value).components.find((x) => x.id === c.id);
+    const cleared = (c.rowNotes?.length ?? 0) - (after?.rowNotes?.length ?? 0);
+    update(project.id, (p) => setCount(p, c.id, field, value));
+    if (cleared > 0) {
+      toast({
+        message: tp('rows.notesCleared', cleared, {
+          unit: unitLabel(t, c.countUnit).toLowerCase(),
+          units: unit.toLowerCase(),
+        }),
+        actionLabel: t('common.undo'),
+        onAction: undo,
+      });
+    }
+  };
+
   const reset = (field: CounterField, label: string) => {
-    const previous = c[field] ?? 0;
+    const undo = restore(field);
     update(project.id, (p) => resetCount(p, c.id, field));
     toast({
       message: t('counter.resetDone', { name: c.name, lower: label.toLowerCase() }),
       actionLabel: t('common.undo'),
-      onAction: () => update(project.id, (p) => setCount(p, c.id, field, previous)),
+      onAction: undo,
     });
   };
 
@@ -143,8 +167,8 @@ export function ComponentCard({ project, component: c, index, highlighted, onEdi
               label={label}
               value={c[field] ?? 0}
               target={c.targetRows}
-              onChange={(d) => update(project.id, (p) => changeCount(p, c.id, field, d))}
-              onSet={(v) => update(project.id, (p) => setCount(p, c.id, field, v))}
+              onChange={(d) => count(field, (c[field] ?? 0) + d)}
+              onSet={(v) => count(field, v)}
               onReset={() => reset(field, label)}
             />
           );

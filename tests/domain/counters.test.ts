@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { changeCount, resetCount, setCount } from '../../src/domain/counters';
+import { setRowNote } from '../../src/domain/rowNotes';
 import { MAX_COUNT, parseCount } from '../../src/domain/validation';
 import { makeProject } from '../helpers';
 
@@ -66,5 +67,30 @@ describe('counters', () => {
     expect(parseCount('abc')).toHaveProperty('error');
     expect(parseCount('')).toHaveProperty('error');
     expect(parseCount('100000')).toHaveProperty('error');
+  });
+
+  it('clears notes on finished rows when counting back down, but keeps planned ones', () => {
+    const { p, cuff } = base();
+    let next = setCount(p, cuff, 'rows', 5);
+    for (const row of [1, 3, 5, 6, 12]) next = setRowNote(next, cuff, row, `r${row}`);
+    const rowsWithNotes = (q: typeof p) => q.components[0].rowNotes?.map((n) => n.row);
+
+    // One step back: row 6 leaves the log (5 is on the needles again), so its note goes.
+    expect(rowsWithNotes(changeCount(next, cuff, 'rows', -1))).toEqual([1, 3, 5, 12]);
+    // Back to 0: rows 2..6 are undone; row 1 is on the needles and 12 was planned beyond them.
+    expect(rowsWithNotes(resetCount(next, cuff, 'rows'))).toEqual([1, 12]);
+    // Counting up never touches notes.
+    expect(rowsWithNotes(setCount(next, cuff, 'rows', 20))).toEqual([1, 3, 5, 6, 12]);
+  });
+
+  it('keeps notes the other piece of a pair still reaches', () => {
+    const { p, cuff } = base();
+    let next = setCount(p, cuff, 'rows', 4);
+    next = setCount(next, cuff, 'pairRows', 8);
+    next = setRowNote(next, cuff, 3, 'a');
+    next = setRowNote(next, cuff, 7, 'b');
+    next = setRowNote(next, cuff, 9, 'c');
+    expect(resetCount(next, cuff, 'rows').components[0].rowNotes).toHaveLength(3);
+    expect(resetCount(next, cuff, 'pairRows').components[0].rowNotes?.map((n) => n.row)).toEqual([3]);
   });
 });

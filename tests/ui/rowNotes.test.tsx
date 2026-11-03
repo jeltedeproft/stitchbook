@@ -127,4 +127,29 @@ describe('row log on a part', () => {
     expect(within(items[1]).getByText('fait')).toBeInTheDocument();
     expect(within(items[1]).getByText('Montage')).toBeInTheDocument();
   });
+
+  it('clears notes on undone rows when counting back to 0, with undo', async () => {
+    const user = userEvent.setup();
+    let project = makeProject('Sweater', ['Sleeve']);
+    const id = project.components[0].id;
+    project = setCount(project, id, 'rows', 2);
+    project = setRowNote(project, id, 2, 'Oops');
+    project = setRowNote(project, id, 9, 'Decrease');
+    const repo = await seededRepo([project]);
+    renderApp(repo);
+    goTo(`#/project/${project.id}`);
+
+    const card = within((await screen.findByRole('heading', { name: 'Sleeve' })).closest('article')!);
+    const log = card.getByRole('region', { name: 'Row by row' });
+    await user.click(card.getByRole('button', { name: 'Decrease rows' }));
+    expect(rowNames(log)).toEqual(['Row 9', 'Row 2', 'Row 1']);
+    await user.click(card.getByRole('button', { name: 'Decrease rows' }));
+    expect(rowNames(log)).toEqual(['Row 9', 'Row 1']);
+    expect(within(log).queryByText('Oops')).not.toBeInTheDocument();
+    expect(screen.getByText('Removed the note on a row you undid.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(rowNames(log)).toEqual(['Row 9', 'Row 2', 'Row 1']);
+    expect(within(log).getByText('Oops')).toBeInTheDocument();
+  });
 });
